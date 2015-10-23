@@ -225,7 +225,7 @@ class TelegramBot():
 
 						if tds[0].has_attr('bgcolor'):
 							if tds[0]['bgcolor'] == "#DBDBDB":
-								result += "\n" + "*" + tr.text.split("|")[0].replace(tr.find_all('em')[0].text,"").replace("в начало","") + "*" + ( " "*5 + "_" + tr.find_all('em')[0].text + "_") if len(tr.find_all('em')) else ""
+								result += "\n" + "*" + tr.text.split("|")[0].replace(tr.find_all('em')[0].text if tr.find_all('em') else "","").replace("в начало","") + "*" + ( ( " "*5 + "_" + tr.find_all('em')[0].text  + "_") if tr.find_all('em') else "" )
 							else:
 								result += translations_row()
 						else:
