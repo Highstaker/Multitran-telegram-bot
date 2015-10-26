@@ -50,8 +50,12 @@ LANGUAGE_INDICIES = {
 , "🇫🇷 Français":4
 , "🇪🇸 Español":5
 , "🇮🇹 Italiano":23
-, "[] Esperanto":34
+, "🇪🇴 Esperanto":34
 , "🇳🇱 Nederlands":24
+, "🇱🇻 Latvian":27
+, "🇪🇹 Estonian":26
+, "🇦🇫 Afrikaans":31
+, "🇽🇦🇱 Kalmyk":35
 }
 
 def split_list(alist,max_size=1):
