@@ -1,8 +1,8 @@
 #!/usr/bin/python3 -u
 # -*- coding: utf-8 -*-
 #TODO
-#-what if there is no such word. Process "Варианты замены"
-#-language choice
+
+VERSION_NUMBER = (0,2,0)
 
 import logging
 import telegram
@@ -37,11 +37,23 @@ HELP_MESSAGE = '''
 Help message
 '''
 
+ABOUT_MESSAGE = """*Multitran Bot*
+_Created by:_ Highstaker a.k.a. OmniSable.
+Source: https://github.com/Highstaker/Multitran-telegram-bot
+Version: """ + ".".join([str(i) for i in VERSION_NUMBER]) + """
+
+This bot uses the python-telegram-bot library.
+https://github.com/leandrotoledo/python-telegram-bot
+
+Translation data is received from multitran.ru
+"""
+
 START_MESSAGE = "Welcome! Type /help to get help."
 
 HELP_BUTTON = "⁉️" + "Help"
 PICK_LANGUAGE_BUTTON = "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸 Pick Language"
 BACK_BUTTON = "⬅️ Back"
+ABOUT_BUTTON = "ℹ️ About"
 
 #Indicies that correspond to various languages on Multitran
 LANGUAGE_INDICIES = {
@@ -63,7 +75,7 @@ def split_list(alist,max_size=1):
 	for i in range(0, len(alist), max_size):
 		yield alist[i:i+max_size]
 
-MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON]]
+MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON]]
 LANGUAGE_PICK_KEY_MARKUP = list(  split_list( list(LANGUAGE_INDICIES.keys()) ,3)  ) + [[BACK_BUTTON]]
 
 ################
@@ -118,6 +130,7 @@ class TelegramBot():
 		logging.warning("Replying to " + str(chat_id) + ": " + text)
 		while True:
 			try:
+				self.bot.sendChatAction(chat_id,telegram.ChatAction.TYPING)
 				self.bot.sendMessage(chat_id=chat_id,
 					text=text,
 					parse_mode='Markdown',
@@ -139,6 +152,7 @@ class TelegramBot():
 			try:
 				logging.debug("Picture: " + str(pic))
 				#set file read cursor to the beginning. This ensures that if a file needs to be re-read (may happen due to exception), it is read from the beginning.
+				self.bot.sendChatAction(chat_id,telegram.ChatAction.UPLOAD_PHOTO)
 				pic.seek(0)
 				self.bot.sendPhoto(chat_id=chat_id,photo=pic)
 			except Exception as e:
@@ -187,6 +201,10 @@ class TelegramBot():
 				self.sendMessage(chat_id=chat_id
 					,text=HELP_MESSAGE
 					)
+			elif message == "/about" or message == ABOUT_BUTTON:
+				self.sendMessage(chat_id=chat_id
+					,text=ABOUT_MESSAGE
+					)
 			elif message == PICK_LANGUAGE_BUTTON:
 				self.sendMessage(chat_id=chat_id
 					,text="Select language"
@@ -213,8 +231,6 @@ class TelegramBot():
 				temp1 = [i for i in soup.find_all('table') if not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr('cellpadding') and i.has_attr('cellspacing') and i.has_attr('border') 
 				and not len(i.find_all('table'))
 				]
-				print("temp1 ", temp1)
-				print("len(temp1) ", len(temp1))
 
 				def process_result(temp1):
 					result = ""
@@ -224,12 +240,12 @@ class TelegramBot():
 							result = "_" + tr.find_all('a')[0].text + "_" + " "*5
 							for a in tr.find_all('a')[1:]:
 								if not 'i' in [i.name for i in a.children]:
-									result +=  a.text + "; "
+									result +=  a.text.replace("_","").replace("*","") + ";"
 							return result
 
 						if tds[0].has_attr('bgcolor'):
 							if tds[0]['bgcolor'] == "#DBDBDB":
-								result += "\n" + "*" + tr.text.split("|")[0].replace(tr.find_all('em')[0].text if tr.find_all('em') else "","").replace("в начало","") + "*" + ( ( " "*5 + "_" + tr.find_all('em')[0].text  + "_") if tr.find_all('em') else "" )
+								result += "\n" + "*" + tr.text.split("|")[0].replace(tr.find_all('em')[0].text if tr.find_all('em') else "","").replace("в начало","").replace("\n","").replace("_","").replace("*","") + "*" + ( ( " "*5 + "_" + tr.find_all('em')[0].text  + "_") if tr.find_all('em') else "" )
 							else:
 								result += translations_row()
 						else:
