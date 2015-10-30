@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #TODO
 
-VERSION_NUMBER = (0,2,0)
+VERSION_NUMBER = (0,3,0)
 
 import logging
 import telegram
@@ -32,6 +32,8 @@ TOKEN_FILENAME = 'token'
 #A path where subscribers list is saved.
 SUBSCRIBERS_BACKUP_FILE = '/tmp/multitran_bot_subscribers_bak'
 
+#Maximum amount of characters per message
+MAX_CHARS_PER_MESSAGE = 2000
 
 HELP_MESSAGE = '''
 Help message
@@ -286,12 +288,32 @@ class TelegramBot():
 
 				result += "\nCurrent language is " + list(LANGUAGE_INDICIES.keys())[list(LANGUAGE_INDICIES.values()).index(self.subscribers[chat_id]) ]
 
-				try:
-					self.sendMessage(chat_id=chat_id
-						,text=str(result)
-						)
-				except Exception as e:
-					logging.error("Could not process message. Error: " + str(e))
+				#break the result in several messages if it is too big
+				if len(result) < MAX_CHARS_PER_MESSAGE:
+					try:
+						self.sendMessage(chat_id=chat_id
+							,text=str(result)
+							)
+					except Exception as e:
+						logging.error("Could not process message. Error: " + str(e))
+				else:
+					result_split = result.split("\n")
+					result = ""
+					while result_split:
+						while True:
+							if result_split:
+								result += result_split.pop(0)+"\n"
+							else:
+								break
+
+							if len(result) > MAX_CHARS_PER_MESSAGE:
+								break
+
+						if result:
+							self.sendMessage(chat_id=chat_id
+								,text=str(result)
+								)
+							result = ""
 
 			# Updates global offset to get the new updates
 			self.LAST_UPDATE_ID = update.update_id + 1
