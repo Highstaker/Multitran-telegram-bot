@@ -35,28 +35,6 @@ SUBSCRIBERS_BACKUP_FILE = '/tmp/multitran_bot_subscribers_bak'
 #Maximum amount of characters per message
 MAX_CHARS_PER_MESSAGE = 2000
 
-HELP_MESSAGE = '''
-Help message
-'''
-
-ABOUT_MESSAGE = """*Multitran Bot*
-_Created by:_ Highstaker a.k.a. OmniSable.
-Source: https://github.com/Highstaker/Multitran-telegram-bot
-Version: """ + ".".join([str(i) for i in VERSION_NUMBER]) + """
-
-This bot uses the python-telegram-bot library.
-https://github.com/leandrotoledo/python-telegram-bot
-
-Translation data is received from multitran.ru
-"""
-
-START_MESSAGE = "Welcome! Type /help to get help."
-
-HELP_BUTTON = "⁉️" + "Help"
-PICK_LANGUAGE_BUTTON = "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸 Pick Language"
-BACK_BUTTON = "⬅️ Back"
-ABOUT_BUTTON = "ℹ️ About"
-
 #Indicies that correspond to various languages on Multitran
 LANGUAGE_INDICIES = {
 "🇬🇧 English" :1
@@ -71,6 +49,41 @@ LANGUAGE_INDICIES = {
 , "🇦🇫 Afrikaans":31
 , "🇽🇦🇱 Kalmyk":35
 }
+
+#########
+####BUTTONS
+##########
+
+HELP_BUTTON = "⁉️" + "Help"
+PICK_LANGUAGE_BUTTON = "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸 Pick Language"
+BACK_BUTTON = "⬅️ Back"
+ABOUT_BUTTON = "ℹ️ About"
+
+##############
+####MESSAGES
+############
+
+HELP_MESSAGE = '''
+This bot connects to Multitran dictionary to translate between Russian and a selected language.
+By default it is set to English.
+To translate a word, type it.
+To change language click the \" ''' + PICK_LANGUAGE_BUTTON + ''' \" button.
+
+Available languages are: ''' + ", ".join(list(LANGUAGE_INDICIES.keys())) + '''
+'''
+
+ABOUT_MESSAGE = """*Multitran Bot*
+_Created by:_ Highstaker a.k.a. OmniSable.
+Source: https://github.com/Highstaker/Multitran-telegram-bot
+Version: """ + ".".join([str(i) for i in VERSION_NUMBER]) + """
+
+This bot uses the python-telegram-bot library.
+https://github.com/leandrotoledo/python-telegram-bot
+
+Translation data is received from multitran.ru
+"""
+
+START_MESSAGE = "Welcome! Type /help to get help."
 
 def split_list(alist,max_size=1):
 	"""Yield successive n-sized chunks from l."""
