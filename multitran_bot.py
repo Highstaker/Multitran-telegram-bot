@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #TODO
 
-VERSION_NUMBER = (0,3,0)
+VERSION_NUMBER = (0,3,1)
 
 import logging
 import telegram
@@ -240,7 +240,8 @@ class TelegramBot():
 				if message[0] == "/":
 					message = message[1:]
 
-				page = getHTML_specifyEncoding('http://www.multitran.ru/c/m.exe?l1='+str(self.subscribers[chat_id]) +'&s=' + message, encoding='cp1251',method='replace')
+				page_url = 'http://www.multitran.ru/c/m.exe?l1='+str(self.subscribers[chat_id]) +'&s=' + message
+				page = getHTML_specifyEncoding(page_url, encoding='cp1251',method='replace')
 				soup = BeautifulSoup(page)
 
 				temp1 = [i for i in soup.find_all('table') if not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr('cellpadding') and i.has_attr('cellspacing') and i.has_attr('border') 
@@ -273,7 +274,8 @@ class TelegramBot():
 				result=""
 				#maybe the request is in Russian?
 				if not len(temp1):
-					page = getHTML_specifyEncoding('http://www.multitran.ru/c/m.exe?l1=2&l2='+ str(self.subscribers[chat_id]) + '&s=' + message, encoding='cp1251',method='replace')
+					page_url = 'http://www.multitran.ru/c/m.exe?l1=2&l2='+ str(self.subscribers[chat_id]) + '&s=' + message
+					page = getHTML_specifyEncoding(page_url, encoding='cp1251',method='replace')
 					soup = BeautifulSoup(page)
 
 					temp1 = [i for i in soup.find_all('table') if not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr('cellpadding') and i.has_attr('cellspacing') and i.has_attr('border') and not len(i.find_all('table'))]
@@ -298,6 +300,8 @@ class TelegramBot():
 					#request is in foreign language
 					temp1= temp1[0]
 					result = process_result(temp1)
+
+				result += "\nLink to the dictionary page: " + page_url
 
 				result += "\nCurrent language is " + list(LANGUAGE_INDICIES.keys())[list(LANGUAGE_INDICIES.values()).index(self.subscribers[chat_id]) ]
 
