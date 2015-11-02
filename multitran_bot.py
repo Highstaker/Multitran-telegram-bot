@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #TODO
 
-VERSION_NUMBER = (0,3,1)
+VERSION_NUMBER = (0,3,2)
 
 import logging
 import telegram
@@ -301,7 +301,7 @@ class TelegramBot():
 					temp1= temp1[0]
 					result = process_result(temp1)
 
-				result += "\nLink to the dictionary page: " + page_url
+				result += "\nLink to the dictionary page: " + page_url.replace(" ","+")
 
 				result += "\nCurrent language is " + list(LANGUAGE_INDICIES.keys())[list(LANGUAGE_INDICIES.values()).index(self.subscribers[chat_id]) ]
 
