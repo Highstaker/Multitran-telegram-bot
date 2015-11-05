@@ -5,7 +5,7 @@
 #-translate the bot to other languages
 #-make donation info
 
-VERSION_NUMBER = (0,3,3)
+VERSION_NUMBER = (0,3,4)
 
 import logging
 import telegram
@@ -61,6 +61,7 @@ HELP_BUTTON = "⁉️" + "Help"
 PICK_LANGUAGE_BUTTON = "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸 Pick Language"
 BACK_BUTTON = "⬅️ Back"
 ABOUT_BUTTON = "ℹ️ About"
+RATE_ME_BUTTON = "⭐️ Like me? Rate!"
 
 ##############
 ####MESSAGES
@@ -76,24 +77,30 @@ Available languages are: ''' + ", ".join(list(LANGUAGE_INDICIES.keys())) + '''
 '''
 
 ABOUT_MESSAGE = """*Multitran Bot*
-_Created by:_ Highstaker a.k.a. OmniSable.
-Source: https://github.com/Highstaker/Multitran-telegram-bot
+_Created by:_ Highstaker a.k.a. OmniSable. 
+Get in touch with me on Telegram if you have questions, suggestions or bug reports (@OmniSable).
+Source code can be found [here](https://github.com/Highstaker/Multitran-telegram-bot).
 Version: """ + ".".join([str(i) for i in VERSION_NUMBER]) + """
 
-This bot uses the python-telegram-bot library.
-https://github.com/leandrotoledo/python-telegram-bot
+This bot uses the [python-telegram-bot](https://github.com/leandrotoledo/python-telegram-bot) library.
 
-Translation data is received from multitran.ru
+Translation data is received from [Multitran online dictionary](multitran.ru).
 """
 
 START_MESSAGE = "Welcome! Type /help to get help."
+
+RATE_ME_MESSAGE = """
+You seem to like this bot. You can rate it [here](https://storebot.me/bot/multitran_bot)!
+
+Your ⭐️⭐️⭐️⭐️⭐️ would be really appreciated!
+"""
 
 def split_list(alist,max_size=1):
 	"""Yield successive n-sized chunks from l."""
 	for i in range(0, len(alist), max_size):
 		yield alist[i:i+max_size]
 
-MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON]]
+MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON]]
 LANGUAGE_PICK_KEY_MARKUP = list(  split_list( list(LANGUAGE_INDICIES.keys()) ,3)  ) + [[BACK_BUTTON]]
 
 ################
@@ -223,6 +230,10 @@ class TelegramBot():
 			elif message == "/about" or message == ABOUT_BUTTON:
 				self.sendMessage(chat_id=chat_id
 					,text=ABOUT_MESSAGE
+					)
+			elif message == "/rate" or message == RATE_ME_BUTTON:
+				self.sendMessage(chat_id=chat_id
+					,text=RATE_ME_MESSAGE
 					)
 			elif message == PICK_LANGUAGE_BUTTON:
 				self.sendMessage(chat_id=chat_id
