@@ -1,8 +1,11 @@
 #!/usr/bin/python3 -u
 # -*- coding: utf-8 -*-
 #TODO
+#+remove a webpage preview from translated. It takes too much space. use disable_web_page_preview in sendMessage
+#-translate the bot to other languages
+#-make donation info
 
-VERSION_NUMBER = (0,3,2)
+VERSION_NUMBER = (0,3,3)
 
 import logging
 import telegram
@@ -141,7 +144,7 @@ class TelegramBot():
 		with open(SUBSCRIBERS_BACKUP_FILE,'wb') as f:
 			pickle.dump(self.subscribers, f, pickle.HIGHEST_PROTOCOL)
 
-	def sendMessage(self,chat_id,text,key_markup=MAIN_MENU_KEY_MARKUP):
+	def sendMessage(self,chat_id,text,key_markup=MAIN_MENU_KEY_MARKUP,preview=True):
 		logging.warning("Replying to " + str(chat_id) + ": " + text)
 		while True:
 			try:
@@ -149,6 +152,7 @@ class TelegramBot():
 				self.bot.sendMessage(chat_id=chat_id,
 					text=text,
 					parse_mode='Markdown',
+					disable_web_page_preview=(not preview),
 					reply_markup=telegram.ReplyKeyboardMarkup(key_markup)
 					)
 			except Exception as e:
@@ -310,6 +314,7 @@ class TelegramBot():
 					try:
 						self.sendMessage(chat_id=chat_id
 							,text=str(result)
+							,preview=False
 							)
 					except Exception as e:
 						logging.error("Could not process message. Error: " + str(e))
@@ -329,6 +334,7 @@ class TelegramBot():
 						if result:
 							self.sendMessage(chat_id=chat_id
 								,text=str(result)
+								,preview=False
 								)
 							result = ""
 
