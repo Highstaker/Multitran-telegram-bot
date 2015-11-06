@@ -272,10 +272,10 @@ class TelegramBot():
 							for tr in temp1.find_all('tr'):
 								tds = tr.find_all('td')
 								def translations_row():
-									result = "_" + tr.find_all('a')[0].text + "_" + " "*5
+									result = "`" + tr.find_all('a')[0].text + "`" + " "*5
 									for a in tr.find_all('a')[1:]:
 										if not 'i' in [i.name for i in a.children]:
-											result +=  a.text.replace("_","").replace("*","") + "; "
+											result +=  a.text.replace("_","").replace("*","").replace("`","") + "; "
 									return result
 
 								if tds[0].has_attr('bgcolor'):
