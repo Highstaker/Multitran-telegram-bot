@@ -275,7 +275,7 @@ class TelegramBot():
 									result = "_" + tr.find_all('a')[0].text + "_" + " "*5
 									for a in tr.find_all('a')[1:]:
 										if not 'i' in [i.name for i in a.children]:
-											result +=  a.text.replace("_","").replace("*","") + ";"
+											result +=  a.text.replace("_","").replace("*","") + "; "
 									return result
 
 								if tds[0].has_attr('bgcolor'):
