@@ -5,11 +5,11 @@
 #-make donation info
 #-fix flags of languages in both help message and pick menu
 
-VERSION_NUMBER = (0,3,6)
+VERSION_NUMBER = (0,4,0)
 
 import logging
 import telegram
-from time import time
+from time import time, sleep
 from os import path, listdir, walk
 import socket
 import pickle #module for saving dictionaries to file
@@ -169,9 +169,15 @@ class TelegramBot():
 						,text="Error: Message is too long!"
 						)
 					break
-				else:
+				if ("urlopen error" in str(e)) or ("timed out" in str(e)):
 					logging.error("Could not send message. Retrying! Error: " + str(e))
+					sleep(3)
 					continue
+				else:
+					logging.error("Could not send message. Error: " + str(e))
+					# self.sendMessage(chat_id=chat_id
+					# 	,text="Unknown Error!"
+					# 	)
 			break
 
 	def sendPic(self,chat_id,pic):
@@ -197,6 +203,7 @@ class TelegramBot():
 				updates = self.bot.getUpdates(offset=self.LAST_UPDATE_ID, timeout=3)
 			except Exception as e:
 				logging.error("Could not read updates. Retrying! Error: " + str(e))
+				sleep(3)
 				continue
 			break
 		return updates
@@ -258,6 +265,7 @@ class TelegramBot():
 					else:
 						if message[0] == "/":
 							message = message[1:]
+						message = message.replace("_","").replace("*","").replace("`","")
 
 						page_url = 'http://www.multitran.ru/c/m.exe?l1='+str(self.subscribers[chat_id]) +'&s=' + message
 						page = getHTML_specifyEncoding(page_url, encoding='cp1251',method='replace')
