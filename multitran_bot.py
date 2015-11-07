@@ -5,7 +5,7 @@
 #-make donation info
 #-fix flags of languages in both help message and pick menu
 
-VERSION_NUMBER = (0,5,2)
+VERSION_NUMBER = (0,5,3)
 
 import logging
 import telegram
@@ -24,6 +24,9 @@ socket.setdefaulttimeout(30)
 logging.basicConfig(format = u'[%(asctime)s] %(filename)s[LINE:%(lineno)d]# %(levelname)-8s  %(message)s', 
 	level = logging.WARNING)
 
+#############
+##METHODS###
+############
 
 ############
 ##PARAMETERS
@@ -58,10 +61,10 @@ LANGUAGE_INDICIES = {
 ##########
 
 HELP_BUTTON = {"EN" : "⁉️" + "Help", "RU": "⁉️" + "Помощь"}
-PICK_LANGUAGE_BUTTON = "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸 Pick Language"
-BACK_BUTTON = "⬅️ Back"
-ABOUT_BUTTON = "ℹ️ About"
-RATE_ME_BUTTON = "⭐️ Like me? Rate!"
+PICK_LANGUAGE_BUTTON = {"EN" : "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸 Pick Dictionary Language", "RU": "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸 Выбор языка словаря" }
+BACK_BUTTON = {"EN" : "⬅️ Back", "RU": "⬅️ Назад"}
+ABOUT_BUTTON = {"EN" : "ℹ️ About", "RU": "ℹ️ О программе"}
+RATE_ME_BUTTON = {"EN" : "⭐️ Like me? Rate!", "RU": "⭐️ Нравится бот? Оцени!"}
 EN_LANG_BUTTON = "🇬🇧 EN"
 RU_LANG_BUTTON = "🇷🇺 RU"
 
@@ -73,16 +76,21 @@ HELP_MESSAGE = { "EN":'''
 This bot connects to Multitran dictionary to translate between Russian and a selected language.
 By default it is set to English.
 To translate a word, type it.
-To change language click the \" ''' + PICK_LANGUAGE_BUTTON + ''' \" button.
+To change language click the \" ''' + PICK_LANGUAGE_BUTTON["EN"] + ''' \" button.
 
 Available languages are: ''' + ", ".join(list(LANGUAGE_INDICIES.keys())) + '''
 '''
 ,"RU":'''
-Помощь на русском.
+Этот бот может переводить слова и выражения с русского языка на иностранный и наоборот.
+
+Чтобы перевести слово, просто введите его. Русское слово будет переведено на выбранный иностранный язык, а иностранное - на русский.
+
+По умолчанию в качестве иностранного выставлен английский язык.
+Чтобы изменить язык, нажмите кнопку \" ''' + PICK_LANGUAGE_BUTTON["RU"] + ''' \" и выберите язык в меню.
 '''
 }
 
-ABOUT_MESSAGE = """*Multitran Bot*
+ABOUT_MESSAGE = {"EN": """*Multitran Bot*
 _Created by:_ Highstaker a.k.a. OmniSable. 
 Get in touch with me on Telegram if you have questions, suggestions or bug reports (@OmniSable).
 Source code can be found [here](https://github.com/Highstaker/Multitran-telegram-bot).
@@ -92,28 +100,47 @@ This bot uses the [python-telegram-bot](https://github.com/leandrotoledo/python-
 
 Translation data is received from [Multitran online dictionary](multitran.ru).
 """
+,"RU":"""*Multitran Bot*
+_Автор:_ Highstaker a.k.a. OmniSable. 
+По вопросам и предложениям обращайтесь в Телеграм (@OmniSable).
+Исходный код [здесь](https://github.com/Highstaker/Multitran-telegram-bot).
+Версия: """ + ".".join([str(i) for i in VERSION_NUMBER]) + """
+
+Этот бот написан на основе библиотеки [python-telegram-bot](https://github.com/leandrotoledo/python-telegram-bot).
+
+Переводы берутся из [словаря Мультитран](multitran.ru).
+"""
+}
+
 
 START_MESSAGE = "Welcome! Type /help to get help."
 
-RATE_ME_MESSAGE = """
+RATE_ME_MESSAGE = {"EN": """
 You seem to like this bot. You can rate it [here](https://storebot.me/bot/multitran_bot)!
 
 Your ⭐️⭐️⭐️⭐️⭐️ would be really appreciated!
 """
+,"RU": """
+Нравится бот? Оцените его [здесь](https://storebot.me/bot/multitran_bot)!
 
-LANGUAGE_IS_SET_TO_MESSAGE = "Language is set to "
+Буду очень рад хорошим отзывам! 8)
+⭐️⭐️⭐️⭐️⭐️ 
+"""
+}
 
-SELECT_DICT_LANGUAGE_MESSAGE = "Select language"
+LANGUAGE_IS_SET_TO_MESSAGE = {"EN": "Language is set to ", "RU":"Язык установлен на "}
 
-BACK_TO_MAIN_MENU_MESSAGE = "Back to Main Menu"
+SELECT_DICT_LANGUAGE_MESSAGE = {"EN": "Select language", "RU":"Выберите язык"}
 
-WORD_NOT_FOUND_MESSAGE = "*Word not found!*"
+BACK_TO_MAIN_MENU_MESSAGE = {"EN": "Back to Main Menu", "RU":"Вы вернулись в главное меню"}
 
-POSSIBLE_REPLACEMENTS_MESSAGE = "*Possible replacements: *"
+WORD_NOT_FOUND_MESSAGE = {"EN": "*Word not found!*", "RU": "*Слово не найдено!*"}
 
-LINK_TO_DICT_PAGE_MESSAGE = "\nLink to the dictionary page: "
+POSSIBLE_REPLACEMENTS_MESSAGE = {"EN": "*Possible replacements: *", "RU": "*Варианты замены: *"}
 
-CURRENT_LANGUAGE_IS_MESSAGE = "\nCurrent language is "
+LINK_TO_DICT_PAGE_MESSAGE = {"EN": "\nLink to the dictionary page: ", "RU": "\nСсылка на страницу словаря: " }
+
+CURRENT_LANGUAGE_IS_MESSAGE = {"EN": "\nCurrent language is ", "RU": "\nВыбранный язык:" }
 
 def split_list(alist,max_size=1):
 	"""Yield successive n-sized chunks from l."""
@@ -129,10 +156,6 @@ LANGUAGE_PICK_KEY_MARKUP = list(  split_list( list(LANGUAGE_INDICIES.keys()) ,3)
 
 with open(path.join(path.dirname(path.realpath(__file__)), TOKEN_FILENAME),'r') as f:
 	BOT_TOKEN = f.read().replace("\n","")
-
-#############
-##METHODS###
-############
 
 
 ###############
@@ -163,7 +186,7 @@ class TelegramBot():
 			try:
 				result = message[self.subscribers[chat_id][0]]
 			except:
-				result = " "
+				result = message["EN"]
 		elif isinstance(message,list):
 			#could be a key markup
 			result = list(message)
@@ -172,7 +195,7 @@ class TelegramBot():
 		else:
 			result = " "
 			
-		print(result)
+		# print(result)
 		return result
 
 
@@ -279,20 +302,20 @@ class TelegramBot():
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,HELP_MESSAGE)
 							)
-					elif message == "/about" or message == ABOUT_BUTTON:
+					elif message == "/about" or message == self.languageSupport(chat_id,ABOUT_BUTTON):
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,ABOUT_MESSAGE)
 							)
-					elif message == "/rate" or message == RATE_ME_BUTTON:
+					elif message == "/rate" or message == self.languageSupport(chat_id,RATE_ME_BUTTON):
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,RATE_ME_MESSAGE)
 							)
-					elif message == PICK_LANGUAGE_BUTTON:
+					elif message == self.languageSupport(chat_id,PICK_LANGUAGE_BUTTON):
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,SELECT_DICT_LANGUAGE_MESSAGE)
 							,key_markup=LANGUAGE_PICK_KEY_MARKUP
 							)
-					elif message == BACK_BUTTON:
+					elif message == self.languageSupport(chat_id,BACK_BUTTON):
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,BACK_TO_MAIN_MENU_MESSAGE)
 							)
