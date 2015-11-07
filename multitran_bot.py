@@ -5,7 +5,7 @@
 #-make donation info
 #-fix flags of languages in both help message and pick menu
 
-VERSION_NUMBER = (0,4,0)
+VERSION_NUMBER = (0,5,0)
 
 import logging
 import telegram
@@ -62,12 +62,14 @@ PICK_LANGUAGE_BUTTON = "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸 Pick La
 BACK_BUTTON = "⬅️ Back"
 ABOUT_BUTTON = "ℹ️ About"
 RATE_ME_BUTTON = "⭐️ Like me? Rate!"
+EN_LANG_BUTTON = "🇬🇧 EN"
+RU_LANG_BUTTON = "🇷🇺 RU"
 
 ##############
 ####MESSAGES
 ############
 
-HELP_MESSAGE = '''
+HELP_MESSAGE = { "EN":'''
 This bot connects to Multitran dictionary to translate between Russian and a selected language.
 By default it is set to English.
 To translate a word, type it.
@@ -75,6 +77,10 @@ To change language click the \" ''' + PICK_LANGUAGE_BUTTON + ''' \" button.
 
 Available languages are: ''' + ", ".join(list(LANGUAGE_INDICIES.keys())) + '''
 '''
+,"RU":'''
+Помощь на русском.
+'''
+}
 
 ABOUT_MESSAGE = """*Multitran Bot*
 _Created by:_ Highstaker a.k.a. OmniSable. 
@@ -100,7 +106,7 @@ def split_list(alist,max_size=1):
 	for i in range(0, len(alist), max_size):
 		yield alist[i:i+max_size]
 
-MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON]]
+MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON],[EN_LANG_BUTTON,RU_LANG_BUTTON]]
 LANGUAGE_PICK_KEY_MARKUP = list(  split_list( list(LANGUAGE_INDICIES.keys()) ,3)  ) + [[BACK_BUTTON]]
 
 ################
@@ -124,7 +130,7 @@ class TelegramBot():
 
 	LAST_UPDATE_ID = None
 
-	#{chat_id: [LANGUAGE_INDEX], ...}
+	#{chat_id: [Language_of_bot,LANGUAGE_INDEX_of_dictionary], ...}
 	subscribers = {}
 
 	def __init__(self, token):
@@ -132,6 +138,23 @@ class TelegramBot():
 		self.bot = telegram.Bot(token)
 		#get list of all image files
 		self.loadSubscribers()
+
+	def languageSupport(self,chat_id,message):
+		'''
+		Returns a message depending on a language chosen by user
+		'''
+		if isinstance(message,str):
+			result = message
+		elif isinstance(message,dict):
+			try:
+				result = message[self.subscribers[chat_id][0]]
+			except:
+				result = " "
+		else:
+			result = " "
+			
+		return result
+
 
 	def loadSubscribers(self):
 		'''
@@ -225,26 +248,26 @@ class TelegramBot():
 			try:
 				self.subscribers[chat_id]
 			except KeyError:
-				self.subscribers[chat_id] = 1
+				self.subscribers[chat_id] = ["EN",1]
 
 			#I had no idea you could send an empty message
 			try:
 				if message:
 					if message == "/start":
 						self.sendMessage(chat_id=chat_id
-							,text=START_MESSAGE
+							,text=self.languageSupport(chat_id,START_MESSAGE)
 							)
 					elif message == "/help" or message == HELP_BUTTON:
 						self.sendMessage(chat_id=chat_id
-							,text=HELP_MESSAGE
+							,text=self.languageSupport(chat_id,HELP_MESSAGE)
 							)
 					elif message == "/about" or message == ABOUT_BUTTON:
 						self.sendMessage(chat_id=chat_id
-							,text=ABOUT_MESSAGE
+							,text=self.languageSupport(chat_id,ABOUT_MESSAGE)
 							)
 					elif message == "/rate" or message == RATE_ME_BUTTON:
 						self.sendMessage(chat_id=chat_id
-							,text=RATE_ME_MESSAGE
+							,text=self.languageSupport(chat_id,RATE_ME_MESSAGE)
 							)
 					elif message == PICK_LANGUAGE_BUTTON:
 						self.sendMessage(chat_id=chat_id
@@ -255,10 +278,19 @@ class TelegramBot():
 						self.sendMessage(chat_id=chat_id
 							,text="Back to Main Menu"
 							)
+					elif message == RU_LANG_BUTTON:
+						self.sendMessage(chat_id=chat_id
+							,text="Сообщения бота будут отображаться на русском языке."
+							)
+						self.subscribers[chat_id][0] = "RU"
+					elif message == EN_LANG_BUTTON:
+						self.sendMessage(chat_id=chat_id
+							,text="Bot messages will be shown in English."
+							)
+						self.subscribers[chat_id][0] = "EN"
 					elif message in list(LANGUAGE_INDICIES.keys()):
 						#message is a language pick
-						pass
-						self.subscribers[chat_id] = LANGUAGE_INDICIES[message]
+						self.subscribers[chat_id][1] = LANGUAGE_INDICIES[message]
 						self.sendMessage(chat_id=chat_id
 							,text="Language is set to " + message
 							)
@@ -267,7 +299,7 @@ class TelegramBot():
 							message = message[1:]
 						message = message.replace("_","").replace("*","").replace("`","")
 
-						page_url = 'http://www.multitran.ru/c/m.exe?l1='+str(self.subscribers[chat_id]) +'&s=' + message
+						page_url = 'http://www.multitran.ru/c/m.exe?l1='+str(self.subscribers[chat_id][1]) +'&s=' + message
 						page = getHTML_specifyEncoding(page_url, encoding='cp1251',method='replace')
 						soup = BeautifulSoup(page)
 
@@ -301,7 +333,7 @@ class TelegramBot():
 						result=""
 						#maybe the request is in Russian?
 						if not len(temp1):
-							page_url = 'http://www.multitran.ru/c/m.exe?l1=2&l2='+ str(self.subscribers[chat_id]) + '&s=' + message
+							page_url = 'http://www.multitran.ru/c/m.exe?l1=2&l2='+ str(self.subscribers[chat_id][1]) + '&s=' + message
 							page = getHTML_specifyEncoding(page_url, encoding='cp1251',method='replace')
 							soup = BeautifulSoup(page)
 
@@ -330,7 +362,7 @@ class TelegramBot():
 
 						result += "\nLink to the dictionary page: " + page_url.replace(" ","+")
 
-						result += "\nCurrent language is " + list(LANGUAGE_INDICIES.keys())[list(LANGUAGE_INDICIES.values()).index(self.subscribers[chat_id]) ]
+						result += "\nCurrent language is " + list(LANGUAGE_INDICIES.keys())[list(LANGUAGE_INDICIES.values()).index(self.subscribers[chat_id][1]) ]
 
 						#break the result in several messages if it is too big
 						if len(result) < MAX_CHARS_PER_MESSAGE:
