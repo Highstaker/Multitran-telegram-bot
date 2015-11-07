@@ -5,7 +5,7 @@
 #-make donation info
 #-fix flags of languages in both help message and pick menu
 
-VERSION_NUMBER = (0,5,1)
+VERSION_NUMBER = (0,5,2)
 
 import logging
 import telegram
@@ -57,7 +57,7 @@ LANGUAGE_INDICIES = {
 ####BUTTONS
 ##########
 
-HELP_BUTTON = "⁉️" + "Help"
+HELP_BUTTON = {"EN" : "⁉️" + "Help", "RU": "⁉️" + "Помощь"}
 PICK_LANGUAGE_BUTTON = "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸 Pick Language"
 BACK_BUTTON = "⬅️ Back"
 ABOUT_BUTTON = "ℹ️ About"
@@ -164,9 +164,15 @@ class TelegramBot():
 				result = message[self.subscribers[chat_id][0]]
 			except:
 				result = " "
+		elif isinstance(message,list):
+			#could be a key markup
+			result = list(message)
+			for n,i in enumerate(message):
+				result[n] = self.languageSupport(chat_id,i)
 		else:
 			result = " "
 			
+		print(result)
 		return result
 
 
@@ -190,6 +196,7 @@ class TelegramBot():
 
 	def sendMessage(self,chat_id,text,key_markup=MAIN_MENU_KEY_MARKUP,preview=True):
 		logging.warning("Replying to " + str(chat_id) + ": " + text)
+		key_markup = self.languageSupport(chat_id,key_markup)
 		while True:
 			try:
 				if text:
@@ -268,7 +275,7 @@ class TelegramBot():
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,START_MESSAGE)
 							)
-					elif message == "/help" or message == HELP_BUTTON:
+					elif message == "/help" or message == self.languageSupport(chat_id,HELP_BUTTON):
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,HELP_MESSAGE)
 							)
@@ -290,15 +297,15 @@ class TelegramBot():
 							,text=self.languageSupport(chat_id,BACK_TO_MAIN_MENU_MESSAGE)
 							)
 					elif message == RU_LANG_BUTTON:
+						self.subscribers[chat_id][0] = "RU"
 						self.sendMessage(chat_id=chat_id
 							,text="Сообщения бота будут отображаться на русском языке."
 							)
-						self.subscribers[chat_id][0] = "RU"
 					elif message == EN_LANG_BUTTON:
+						self.subscribers[chat_id][0] = "EN"
 						self.sendMessage(chat_id=chat_id
 							,text="Bot messages will be shown in English."
 							)
-						self.subscribers[chat_id][0] = "EN"
 					elif message in list(LANGUAGE_INDICIES.keys()):
 						#message is a language pick
 						self.subscribers[chat_id][1] = LANGUAGE_INDICIES[message]
