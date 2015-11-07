@@ -5,7 +5,7 @@
 #-make donation info
 #-fix flags of languages in both help message and pick menu
 
-VERSION_NUMBER = (0,5,0)
+VERSION_NUMBER = (0,5,1)
 
 import logging
 import telegram
@@ -100,6 +100,20 @@ You seem to like this bot. You can rate it [here](https://storebot.me/bot/multit
 
 Your ⭐️⭐️⭐️⭐️⭐️ would be really appreciated!
 """
+
+LANGUAGE_IS_SET_TO_MESSAGE = "Language is set to "
+
+SELECT_DICT_LANGUAGE_MESSAGE = "Select language"
+
+BACK_TO_MAIN_MENU_MESSAGE = "Back to Main Menu"
+
+WORD_NOT_FOUND_MESSAGE = "*Word not found!*"
+
+POSSIBLE_REPLACEMENTS_MESSAGE = "*Possible replacements: *"
+
+LINK_TO_DICT_PAGE_MESSAGE = "\nLink to the dictionary page: "
+
+CURRENT_LANGUAGE_IS_MESSAGE = "\nCurrent language is "
 
 def split_list(alist,max_size=1):
 	"""Yield successive n-sized chunks from l."""
@@ -198,9 +212,6 @@ class TelegramBot():
 					continue
 				else:
 					logging.error("Could not send message. Error: " + str(e))
-					# self.sendMessage(chat_id=chat_id
-					# 	,text="Unknown Error!"
-					# 	)
 			break
 
 	def sendPic(self,chat_id,pic):
@@ -271,12 +282,12 @@ class TelegramBot():
 							)
 					elif message == PICK_LANGUAGE_BUTTON:
 						self.sendMessage(chat_id=chat_id
-							,text="Select language"
+							,text=self.languageSupport(chat_id,SELECT_DICT_LANGUAGE_MESSAGE)
 							,key_markup=LANGUAGE_PICK_KEY_MARKUP
 							)
 					elif message == BACK_BUTTON:
 						self.sendMessage(chat_id=chat_id
-							,text="Back to Main Menu"
+							,text=self.languageSupport(chat_id,BACK_TO_MAIN_MENU_MESSAGE)
 							)
 					elif message == RU_LANG_BUTTON:
 						self.sendMessage(chat_id=chat_id
@@ -292,7 +303,7 @@ class TelegramBot():
 						#message is a language pick
 						self.subscribers[chat_id][1] = LANGUAGE_INDICIES[message]
 						self.sendMessage(chat_id=chat_id
-							,text="Language is set to " + message
+							,text=self.languageSupport(chat_id,LANGUAGE_IS_SET_TO_MESSAGE) + message
 							)
 					else:
 						if message[0] == "/":
@@ -341,14 +352,14 @@ class TelegramBot():
 
 							# Maybe there is no such word?
 							if not len(temp1):
-								result="*Word not found!*"
+								result=self.languageSupport(chat_id,WORD_NOT_FOUND_MESSAGE)
 								varia = soup.find_all('td',string=re.compile("Варианты"))
 								print("varia",varia)
 								if varia:
 									logging.warning("Есть варианты замены!")
 									# print(varia[0].find_next_sibling("td").find_all('a'))
 									# quit()
-									result += "\n" + "*Possible replacements: *" + varia[0].find_next_sibling("td").text
+									result += "\n" + self.languageSupport(chat_id,POSSIBLE_REPLACEMENTS_MESSAGE) + varia[0].find_next_sibling("td").text.replace("_","").replace("*","").replace("`","")
 
 							else:
 								#request is in Russian
@@ -360,9 +371,9 @@ class TelegramBot():
 							temp1= temp1[0]
 							result = process_result(temp1)
 
-						result += "\nLink to the dictionary page: " + page_url.replace(" ","+")
+						result += self.languageSupport(chat_id,LINK_TO_DICT_PAGE_MESSAGE) + page_url.replace(" ","+")
 
-						result += "\nCurrent language is " + list(LANGUAGE_INDICIES.keys())[list(LANGUAGE_INDICIES.values()).index(self.subscribers[chat_id][1]) ]
+						result += self.languageSupport(chat_id,CURRENT_LANGUAGE_IS_MESSAGE) + list(LANGUAGE_INDICIES.keys())[list(LANGUAGE_INDICIES.values()).index(self.subscribers[chat_id][1]) ]
 
 						#break the result in several messages if it is too big
 						if len(result) < MAX_CHARS_PER_MESSAGE:
