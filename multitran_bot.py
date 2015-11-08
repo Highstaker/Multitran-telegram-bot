@@ -5,7 +5,7 @@
 #-make donation info
 #-fix flags of languages in both help message and pick menu
 
-VERSION_NUMBER = (0,5,3)
+VERSION_NUMBER = (0,5,4)
 
 import logging
 import telegram
@@ -36,7 +36,7 @@ logging.basicConfig(format = u'[%(asctime)s] %(filename)s[LINE:%(lineno)d]# %(le
 TOKEN_FILENAME = 'token'
 
 #A path where subscribers list is saved.
-SUBSCRIBERS_BACKUP_FILE = '/tmp/multitran_bot_subscribers_bak'
+SUBSCRIBERS_BACKUP_FILE = '/tmp/multitran_bot_subscribers_bak.save'
 
 #Maximum amount of characters per message
 MAX_CHARS_PER_MESSAGE = 2000
@@ -51,8 +51,8 @@ LANGUAGE_INDICIES = {
 , "🇪🇴 Esperanto":34
 , "🇳🇱 Nederlands":24
 , "🇱🇻 Latvian":27
-, "🇪🇹 Estonian":26
-, "🇦🇫 Afrikaans":31
+, "🇪🇪 Estonian":26
+, "🇿🇦 Afrikaans":31
 , "🇽🇦🇱 Kalmyk":35
 }
 
@@ -175,7 +175,7 @@ class TelegramBot():
 	def __init__(self, token):
 		super(TelegramBot, self).__init__()
 		self.bot = telegram.Bot(token)
-		#get list of all image files
+		#get data for all users
 		self.loadSubscribers()
 
 	def languageSupport(self,chat_id,message):
@@ -292,6 +292,7 @@ class TelegramBot():
 				self.subscribers[chat_id]
 			except KeyError:
 				self.subscribers[chat_id] = ["EN",1]
+				self.saveSubscribers()
 
 			#I had no idea you could send an empty message
 			try:
@@ -323,17 +324,20 @@ class TelegramBot():
 							)
 					elif message == RU_LANG_BUTTON:
 						self.subscribers[chat_id][0] = "RU"
+						self.saveSubscribers()
 						self.sendMessage(chat_id=chat_id
 							,text="Сообщения бота будут отображаться на русском языке."
 							)
 					elif message == EN_LANG_BUTTON:
 						self.subscribers[chat_id][0] = "EN"
+						self.saveSubscribers()
 						self.sendMessage(chat_id=chat_id
 							,text="Bot messages will be shown in English."
 							)
 					elif message in list(LANGUAGE_INDICIES.keys()):
 						#message is a language pick
 						self.subscribers[chat_id][1] = LANGUAGE_INDICIES[message]
+						self.saveSubscribers()
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,LANGUAGE_IS_SET_TO_MESSAGE) + message
 							)
