@@ -95,6 +95,7 @@ _Created by:_ Highstaker a.k.a. OmniSable.
 Get in touch with me on Telegram if you have questions, suggestions or bug reports (@OmniSable).
 Source code can be found [here](https://github.com/Highstaker/Multitran-telegram-bot).
 Version: """ + ".".join([str(i) for i in VERSION_NUMBER]) + """
+[My channel, where I post development notes and update news](https://telegram.me/highstakerdev).
 
 This bot uses the [python-telegram-bot](https://github.com/leandrotoledo/python-telegram-bot) library.
 
@@ -105,6 +106,7 @@ _Автор:_ Highstaker a.k.a. OmniSable.
 По вопросам и предложениям обращайтесь в Телеграм (@OmniSable).
 Исходный код [здесь](https://github.com/Highstaker/Multitran-telegram-bot).
 Версия: """ + ".".join([str(i) for i in VERSION_NUMBER]) + """
+[Мой канал, где я объявляю о новых версиях ботов](https://telegram.me/highstakerdev).
 
 Этот бот написан на основе библиотеки [python-telegram-bot](https://github.com/leandrotoledo/python-telegram-bot).
 
