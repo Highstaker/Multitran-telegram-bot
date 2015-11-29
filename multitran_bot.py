@@ -5,7 +5,7 @@
 #-make donation info
 #-fix flags of languages in both help message and pick menu
 
-VERSION_NUMBER = (0,5,4)
+VERSION_NUMBER = (0,5,5)
 
 import logging
 import telegram
@@ -65,8 +65,8 @@ PICK_LANGUAGE_BUTTON = {"EN" : "🇬🇧🇫🇷🇮🇹🇩🇪🇳🇱🇪🇸
 BACK_BUTTON = {"EN" : "⬅️ Back", "RU": "⬅️ Назад"}
 ABOUT_BUTTON = {"EN" : "ℹ️ About", "RU": "ℹ️ О программе"}
 RATE_ME_BUTTON = {"EN" : "⭐️ Like me? Rate!", "RU": "⭐️ Нравится бот? Оцени!"}
-EN_LANG_BUTTON = "🇬🇧 EN"
-RU_LANG_BUTTON = "🇷🇺 RU"
+EN_LANG_BUTTON = "Bot language:🇬🇧 EN"
+RU_LANG_BUTTON = "Язык бота:🇷🇺 RU"
 
 ##############
 ####MESSAGES
@@ -149,7 +149,7 @@ def split_list(alist,max_size=1):
 	for i in range(0, len(alist), max_size):
 		yield alist[i:i+max_size]
 
-MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON],[EN_LANG_BUTTON,RU_LANG_BUTTON]]
+MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON],[EN_LANG_BUTTON,RU_LANG_BUTTON],list(LANGUAGE_INDICIES.keys())]
 LANGUAGE_PICK_KEY_MARKUP = list(  split_list( list(LANGUAGE_INDICIES.keys()) ,3)  ) + [[BACK_BUTTON]]
 
 ################
