@@ -1,11 +1,9 @@
 #!/usr/bin/python3 -u
 # -*- coding: utf-8 -*-
 #TODO
-#-translate the bot to other languages
 #-make donation info
-#-fix flags of languages in both help message and pick menu
 
-VERSION_NUMBER = (0,5,5)
+VERSION_NUMBER = (0,6,0)
 
 import logging
 import telegram
@@ -36,7 +34,7 @@ logging.basicConfig(format = u'[%(asctime)s] %(filename)s[LINE:%(lineno)d]# %(le
 TOKEN_FILENAME = 'token'
 
 #A path where subscribers list is saved.
-SUBSCRIBERS_BACKUP_FILE = '/tmp/multitran_bot_subscribers_bak.save'
+SUBSCRIBERS_BACKUP_FILE = 'multitran_bot_subscribers_bak.save'
 
 #Maximum amount of characters per message
 MAX_CHARS_PER_MESSAGE = 2000
@@ -159,6 +157,20 @@ LANGUAGE_PICK_KEY_MARKUP = list(  split_list( list(LANGUAGE_INDICIES.keys()) ,3)
 with open(path.join(path.dirname(path.realpath(__file__)), TOKEN_FILENAME),'r') as f:
 	BOT_TOKEN = f.read().replace("\n","")
 
+#############
+##METHODS###
+############
+
+def is_integer(s):
+	'''
+	If a string is an integer, returns True
+	'''
+	try:
+		int(s)
+		return True
+	except ValueError:
+		return False
+
 
 ###############
 ###CLASSES#####
@@ -169,7 +181,7 @@ class TelegramBot():
 
 	LAST_UPDATE_ID = None
 
-	#{chat_id: [Language_of_bot,LANGUAGE_INDEX_of_dictionary], ...}
+	#{chat_id: [Language_of_bot,LANGUAGE_INDEX_of_dictionary,list_of_possible_replacements] ...}
 	subscribers = {}
 
 	def __init__(self, token):
@@ -291,7 +303,7 @@ class TelegramBot():
 			try:
 				self.subscribers[chat_id]
 			except KeyError:
-				self.subscribers[chat_id] = ["EN",1]
+				self.subscribers[chat_id] = ["EN",1,[]]
 				self.saveSubscribers()
 
 			#I had no idea you could send an empty message
@@ -344,6 +356,12 @@ class TelegramBot():
 					else:
 						if message[0] == "/":
 							message = message[1:]
+							if is_integer(message):
+								try:
+									message = self.subscribers[chat_id][2][int(message)]
+								except IndexError:
+									logging.warning("No such index in variants_list!")
+
 						message = message.replace("_","").replace("*","").replace("`","")
 
 						page_url = 'http://www.multitran.ru/c/m.exe?l1='+str(self.subscribers[chat_id][1]) +'&s=' + message
@@ -390,12 +408,11 @@ class TelegramBot():
 							if not len(temp1):
 								result=self.languageSupport(chat_id,WORD_NOT_FOUND_MESSAGE)
 								varia = soup.find_all('td',string=re.compile("Варианты"))
-								print("varia",varia)
 								if varia:
-									logging.warning("Есть варианты замены!")
-									# print(varia[0].find_next_sibling("td").find_all('a'))
-									# quit()
-									result += "\n" + self.languageSupport(chat_id,POSSIBLE_REPLACEMENTS_MESSAGE) + varia[0].find_next_sibling("td").text.replace("_","").replace("*","").replace("`","")
+									variants_list = [i for i in varia[0].find_next_sibling("td").text.replace("_","").replace("*","").replace("`","").split(";")]
+									self.subscribers[chat_id][2] = variants_list
+									self.saveSubscribers()
+									result += "\n" + self.languageSupport(chat_id,POSSIBLE_REPLACEMENTS_MESSAGE) + "\n".join([("/"+str(n) + " " + i) for n,i in enumerate(variants_list) ])
 
 							else:
 								#request is in Russian
