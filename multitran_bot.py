@@ -3,16 +3,20 @@
 #TODO
 #-make donation info
 
-VERSION_NUMBER = (0,7,0)
+VERSION_NUMBER = (0,8,0)
 
 import logging
 import telegram
 from time import time, sleep
-from os import path, listdir, walk
+from os import path, listdir, walk, makedirs
 import socket
 import pickle #module for saving dictionaries to file
 from bs4 import BeautifulSoup #HTML parser
 import re
+import requests
+import io
+from PIL import Image
+import itertools
 
 from webpage_reader import getHTML_specifyEncoding
 
@@ -32,6 +36,12 @@ logging.basicConfig(format = u'[%(asctime)s] %(filename)s[LINE:%(lineno)d]# %(le
 
 #A filename of a file containing a token.
 TOKEN_FILENAME = 'token'
+
+#A name and path for a temporary transcription file
+TRANSCRIPTION_TEMP_IMAGE_FILENAME = '/tmp/transcript.png'
+
+#A path to store cached transcription letter images
+TRANSCRIPTION_LETTER_CACHE_PATH = '/tmp/transcription_letters_cache/'
 
 #A path where subscribers list is saved.
 SUBSCRIBERS_BACKUP_FILE = 'multitran_bot_subscribers_bak.save'
@@ -267,14 +277,15 @@ class TelegramBot():
 					logging.error("Could not send message. Error: " + str(e))
 			break
 
-	def sendPic(self,chat_id,pic):
+	def sendPic(self,chat_id,pic,caption=None):
+		logging.warning("Sending image to " + str(chat_id) + " " + str(pic))
 		while True:
 			try:
 				logging.debug("Picture: " + str(pic))
-				#set file read cursor to the beginning. This ensures that if a file needs to be re-read (may happen due to exception), it is read from the beginning.
 				self.bot.sendChatAction(chat_id,telegram.ChatAction.UPLOAD_PHOTO)
+				#set file read cursor to the beginning. This ensures that if a file needs to be re-read (may happen due to exception), it is read from the beginning.
 				pic.seek(0)
-				self.bot.sendPhoto(chat_id=chat_id,photo=pic)
+				self.bot.sendPhoto(chat_id=chat_id,photo=pic,caption=caption)
 			except Exception as e:
 				logging.error("Could not send picture. Retrying! Error: " + str(e))
 				continue
@@ -316,181 +327,256 @@ class TelegramBot():
 				self.saveSubscribers()
 
 			#I had no idea you could send an empty message
-			try:
-				if message:
-					if message == "/start":
+			# try:
+			if message:
+				if message == "/start":
+					self.sendMessage(chat_id=chat_id
+						,text=self.languageSupport(chat_id,START_MESSAGE)
+						)
+				elif message == "/help" or message == self.languageSupport(chat_id,HELP_BUTTON):
+					self.sendMessage(chat_id=chat_id
+						,text=self.languageSupport(chat_id,HELP_MESSAGE)
+						)
+				elif message == "/about" or message == self.languageSupport(chat_id,ABOUT_BUTTON):
+					self.sendMessage(chat_id=chat_id
+						,text=self.languageSupport(chat_id,ABOUT_MESSAGE)
+						)
+				elif message == "/rate" or message == self.languageSupport(chat_id,RATE_ME_BUTTON):
+					self.sendMessage(chat_id=chat_id
+						,text=self.languageSupport(chat_id,RATE_ME_MESSAGE)
+						)
+				elif message == self.languageSupport(chat_id,PICK_LANGUAGE_BUTTON):
+					self.sendMessage(chat_id=chat_id
+						,text=self.languageSupport(chat_id,SELECT_DICT_LANGUAGE_MESSAGE)
+						,key_markup=LANGUAGE_PICK_KEY_MARKUP
+						)
+				elif message == self.languageSupport(chat_id,BACK_BUTTON):
+					self.sendMessage(chat_id=chat_id
+						,text=self.languageSupport(chat_id,BACK_TO_MAIN_MENU_MESSAGE)
+						)
+				elif message == self.languageSupport(chat_id,OPTION_TOGGLE_TRANSLATIONS_LINKS):
+					self.subscribers[chat_id][3] = not self.subscribers[chat_id][3]
+					if self.subscribers[chat_id][3]:
 						self.sendMessage(chat_id=chat_id
-							,text=self.languageSupport(chat_id,START_MESSAGE)
-							)
-					elif message == "/help" or message == self.languageSupport(chat_id,HELP_BUTTON):
-						self.sendMessage(chat_id=chat_id
-							,text=self.languageSupport(chat_id,HELP_MESSAGE)
-							)
-					elif message == "/about" or message == self.languageSupport(chat_id,ABOUT_BUTTON):
-						self.sendMessage(chat_id=chat_id
-							,text=self.languageSupport(chat_id,ABOUT_MESSAGE)
-							)
-					elif message == "/rate" or message == self.languageSupport(chat_id,RATE_ME_BUTTON):
-						self.sendMessage(chat_id=chat_id
-							,text=self.languageSupport(chat_id,RATE_ME_MESSAGE)
-							)
-					elif message == self.languageSupport(chat_id,PICK_LANGUAGE_BUTTON):
-						self.sendMessage(chat_id=chat_id
-							,text=self.languageSupport(chat_id,SELECT_DICT_LANGUAGE_MESSAGE)
-							,key_markup=LANGUAGE_PICK_KEY_MARKUP
-							)
-					elif message == self.languageSupport(chat_id,BACK_BUTTON):
-						self.sendMessage(chat_id=chat_id
-							,text=self.languageSupport(chat_id,BACK_TO_MAIN_MENU_MESSAGE)
-							)
-					elif message == self.languageSupport(chat_id,OPTION_TOGGLE_TRANSLATIONS_LINKS):
-						self.subscribers[chat_id][3] = not self.subscribers[chat_id][3]
-						if self.subscribers[chat_id][3]:
-							self.sendMessage(chat_id=chat_id
-								,text=self.languageSupport(chat_id,TRANSLATION_LINKS_ON_MESSAGE)
-								)
-						else:
-							self.sendMessage(chat_id=chat_id
-								,text=self.languageSupport(chat_id,TRANSLATION_LINKS_OFF_MESSAGE)
-								)
-					elif message == RU_LANG_BUTTON:
-						self.subscribers[chat_id][0] = "RU"
-						self.saveSubscribers()
-						self.sendMessage(chat_id=chat_id
-							,text="Сообщения бота будут отображаться на русском языке."
-							)
-					elif message == EN_LANG_BUTTON:
-						self.subscribers[chat_id][0] = "EN"
-						self.saveSubscribers()
-						self.sendMessage(chat_id=chat_id
-							,text="Bot messages will be shown in English."
-							)
-					elif message in list(LANGUAGE_INDICIES.keys()):
-						#message is a language pick
-						self.subscribers[chat_id][1] = LANGUAGE_INDICIES[message]
-						self.saveSubscribers()
-						self.sendMessage(chat_id=chat_id
-							,text=self.languageSupport(chat_id,LANGUAGE_IS_SET_TO_MESSAGE) + message
+							,text=self.languageSupport(chat_id,TRANSLATION_LINKS_ON_MESSAGE)
 							)
 					else:
-						if message[0] == "/":
-							message = message[1:]
-							if is_integer(message):
-								try:
-									message = self.subscribers[chat_id][2][int(message)]
-								except IndexError:
-									logging.warning("No such index in variants_list!")
+						self.sendMessage(chat_id=chat_id
+							,text=self.languageSupport(chat_id,TRANSLATION_LINKS_OFF_MESSAGE)
+							)
+				elif message == RU_LANG_BUTTON:
+					self.subscribers[chat_id][0] = "RU"
+					self.saveSubscribers()
+					self.sendMessage(chat_id=chat_id
+						,text="Сообщения бота будут отображаться на русском языке."
+						)
+				elif message == EN_LANG_BUTTON:
+					self.subscribers[chat_id][0] = "EN"
+					self.saveSubscribers()
+					self.sendMessage(chat_id=chat_id
+						,text="Bot messages will be shown in English."
+						)
+				elif message in list(LANGUAGE_INDICIES.keys()):
+					#message is a language pick
+					self.subscribers[chat_id][1] = LANGUAGE_INDICIES[message]
+					self.saveSubscribers()
+					self.sendMessage(chat_id=chat_id
+						,text=self.languageSupport(chat_id,LANGUAGE_IS_SET_TO_MESSAGE) + message
+						)
+				else:
+					if message[0] == "/":
+						message = message[1:]
+						if is_integer(message):
+							try:
+								message = self.subscribers[chat_id][2][int(message)]
+							except IndexError:
+								logging.warning("No such index in variants_list!")
 
-						message = message.replace("_","").replace("*","").replace("`","")
+					message = message.replace("_","").replace("*","").replace("`","")
 
-						page_url = 'http://www.multitran.ru/c/m.exe?l1='+str(self.subscribers[chat_id][1]) +'&s=' + message
+					page_url = 'http://www.multitran.ru/c/m.exe?l1='+str(self.subscribers[chat_id][1]) +'&s=' + message
+					page = getHTML_specifyEncoding(page_url, encoding='cp1251',method='replace')
+					soup = BeautifulSoup(page,"lxml")
+
+					temp1 = [i for i in soup.find_all('table') if not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr('cellpadding') and i.has_attr('cellspacing') and i.has_attr('border') 
+					and not len(i.find_all('table'))
+					]
+
+					def process_result(temp1,chat_id):
+						result = ""
+						transcription_images_links = []
+						word_index = 0
+						self.subscribers[chat_id][2] = []
+						for tr in temp1.find_all('tr'):
+							tds = tr.find_all('td')
+							def translations_row(chat_id,word_index):
+								result = "`" + tr.find_all('a')[0].text + "`" + " "*5
+								for a in tr.find_all('a')[1:]:
+									if not 'i' in [i.name for i in a.children]:
+										i_word = a.text.replace("_","").replace("*","").replace("`","")
+										a_word = i_word + "; "
+										self.subscribers[chat_id][2] += [i_word]
+										result += (a_word) if not self.subscribers[chat_id][3] else ("/" + str(word_index) + " " + a_word + "\n")
+										word_index += 1
+								return (result,word_index)
+
+							if tds[0].has_attr('bgcolor'):
+								if tds[0]['bgcolor'] == "#DBDBDB":
+									#an initial word
+									result += "\n" + "*" + tr.text.split("|")[0].replace(tr.find_all('em')[0].text if tr.find_all('em') else "","").replace("в начало","").replace("фразы","").replace("\n","").replace("_","").replace("*","") + "*" + ( ( " "*5 + "_" + tr.find_all('em')[0].text  + "_") if tr.find_all('em') else "" )
+									transcription_images_links += [ [i["src"] for i in tr.find_all('img')] ]
+								else:
+									#translations
+									r, word_index = translations_row(chat_id,word_index)
+									result += r
+							else:
+								r, word_index = translations_row(chat_id,word_index)
+								result += r
+							result += "\n"
+
+						print(transcription_images_links)#debug
+						self.saveSubscribers()
+						return result, transcription_images_links
+
+
+
+					result=""
+					#maybe the request is in Russian?
+					if not len(temp1):
+						page_url = 'http://www.multitran.ru/c/m.exe?l1=2&l2='+ str(self.subscribers[chat_id][1]) + '&s=' + message
 						page = getHTML_specifyEncoding(page_url, encoding='cp1251',method='replace')
 						soup = BeautifulSoup(page)
 
-						temp1 = [i for i in soup.find_all('table') if not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr('cellpadding') and i.has_attr('cellspacing') and i.has_attr('border') 
-						and not len(i.find_all('table'))
-						]
+						temp1 = [i for i in soup.find_all('table') if not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr('cellpadding') and i.has_attr('cellspacing') and i.has_attr('border') and not len(i.find_all('table'))]
 
-						def process_result(temp1,chat_id):
-							result = ""
-							word_index = 0
-							self.subscribers[chat_id][2] = []
-							for tr in temp1.find_all('tr'):
-								tds = tr.find_all('td')
-								def translations_row(chat_id,word_index):
-									result = "`" + tr.find_all('a')[0].text + "`" + " "*5
-									for a in tr.find_all('a')[1:]:
-										if not 'i' in [i.name for i in a.children]:
-											i_word = a.text.replace("_","").replace("*","").replace("`","")
-											a_word = i_word + "; "
-											self.subscribers[chat_id][2] += [i_word]
-											result += (a_word) if not self.subscribers[chat_id][3] else ("/" + str(word_index) + " " + a_word + "\n")
-											word_index += 1
-									return (result,word_index)
-
-								if tds[0].has_attr('bgcolor'):
-									if tds[0]['bgcolor'] == "#DBDBDB":
-										#an initial word
-										result += "\n" + "*" + tr.text.split("|")[0].replace(tr.find_all('em')[0].text if tr.find_all('em') else "","").replace("в начало","").replace("фразы","").replace("\n","").replace("_","").replace("*","") + "*" + ( ( " "*5 + "_" + tr.find_all('em')[0].text  + "_") if tr.find_all('em') else "" )
-									else:
-										#translations
-										r, i = translations_row(chat_id,word_index)
-										result += r
-										word_index = i
-								else:
-									r, i = translations_row(chat_id,word_index)
-									result += r
-									word_index = i
-								result += "\n"
-
-							self.saveSubscribers()
-							return result
-
-
-
-						result=""
-						#maybe the request is in Russian?
+						# Maybe there is no such word?
 						if not len(temp1):
-							page_url = 'http://www.multitran.ru/c/m.exe?l1=2&l2='+ str(self.subscribers[chat_id][1]) + '&s=' + message
-							page = getHTML_specifyEncoding(page_url, encoding='cp1251',method='replace')
-							soup = BeautifulSoup(page)
-
-							temp1 = [i for i in soup.find_all('table') if not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr('cellpadding') and i.has_attr('cellspacing') and i.has_attr('border') and not len(i.find_all('table'))]
-
-							# Maybe there is no such word?
-							if not len(temp1):
-								result=self.languageSupport(chat_id,WORD_NOT_FOUND_MESSAGE)
-								varia = soup.find_all('td',string=re.compile("Варианты"))
-								if varia:
-									variants_list = [i for i in varia[0].find_next_sibling("td").text.replace("_","").replace("*","").replace("`","").split(";")]
-									self.subscribers[chat_id][2] = variants_list
-									self.saveSubscribers()
-									result += "\n" + self.languageSupport(chat_id,POSSIBLE_REPLACEMENTS_MESSAGE) + "\n".join([("/"+str(n) + " " + i) for n,i in enumerate(variants_list) ])
-
-							else:
-								#request is in Russian
-								temp1= temp1[0]
-								result = process_result(temp1,chat_id)
+							result=self.languageSupport(chat_id,WORD_NOT_FOUND_MESSAGE)
+							varia = soup.find_all('td',string=re.compile("Варианты"))
+							if varia:
+								variants_list = [i for i in varia[0].find_next_sibling("td").text.replace("_","").replace("*","").replace("`","").split(";")]
+								self.subscribers[chat_id][2] = variants_list
+								self.saveSubscribers()
+								result += "\n" + self.languageSupport(chat_id,POSSIBLE_REPLACEMENTS_MESSAGE) + "\n".join([("/"+str(n) + " " + i) for n,i in enumerate(variants_list) ])
 
 						else:
-							#request is in foreign language
+							#request is in Russian
 							temp1= temp1[0]
-							result = process_result(temp1,chat_id)
+							result, transcription_images_links = process_result(temp1,chat_id)
 
-						result += self.languageSupport(chat_id,LINK_TO_DICT_PAGE_MESSAGE) + page_url.replace(" ","+")
+					else:
+						#request is in foreign language
+						temp1= temp1[0]
+						result, transcription_images_links = process_result(temp1,chat_id)
 
-						result += self.languageSupport(chat_id,CURRENT_LANGUAGE_IS_MESSAGE) + list(LANGUAGE_INDICIES.keys())[list(LANGUAGE_INDICIES.values()).index(self.subscribers[chat_id][1]) ]
+					result += self.languageSupport(chat_id,LINK_TO_DICT_PAGE_MESSAGE) + page_url.replace(" ","+")
 
-						#break the result in several messages if it is too big
-						if len(result) < MAX_CHARS_PER_MESSAGE:
-							try:
+					result += self.languageSupport(chat_id,CURRENT_LANGUAGE_IS_MESSAGE) + list(LANGUAGE_INDICIES.keys())[list(LANGUAGE_INDICIES.values()).index(self.subscribers[chat_id][1]) ]
+
+					#break the result in several messages if it is too big
+					if len(result) < MAX_CHARS_PER_MESSAGE:
+						try:
+							self.sendMessage(chat_id=chat_id
+								,text=str(result)
+								,preview=False
+								)
+						except Exception as e:
+							logging.error("Could not process message. Error: " + str(e))
+					else:
+						result_split = result.split("\n")
+						result = ""
+						while result_split:
+							while True:
+								if result_split:
+									result += result_split.pop(0)+"\n"
+								else:
+									break
+
+								if len(result) > MAX_CHARS_PER_MESSAGE:
+									break
+
+							if result:
 								self.sendMessage(chat_id=chat_id
 									,text=str(result)
 									,preview=False
 									)
+								result = ""
+					
+					#######
+					#create transcriptions and send
+					########
+
+					# downloading letters
+					def removeListDuplicates(k):
+						'''
+						Removes duplicates from a list `k`. Usable with a list of lists.
+						WARNING! Screws the order up!
+						'''
+						k.sort()
+						return [i for i,j in itertools.groupby(k)]
+
+					def getLetterOnline(letter_page):
+						'''gets a letter picture from multitran'''
+						print("letter_page",letter_page)
+						while True:
+							try:
+								req=requests.get("http://www.multitran.ru" + letter_page)
+								if req.ok:
+									c = req.content
+									image_file = io.BytesIO(c)
+									with open(path.join(TRANSCRIPTION_LETTER_CACHE_PATH,path.basename(letter_page)),'wb') as f:
+										f.write(c)
+									# image = Image.open(image_file)
+									# letter_images += [image]
+									break
 							except Exception as e:
-								logging.error("Could not process message. Error: " + str(e))
-						else:
-							result_split = result.split("\n")
-							result = ""
-							while result_split:
-								while True:
-									if result_split:
-										result += result_split.pop(0)+"\n"
-									else:
-										break
+								logging.error("Could not get transcription letter image. Error: " + str(e))
+								pass
+						return image_file
 
-									if len(result) > MAX_CHARS_PER_MESSAGE:
-										break
 
-								if result:
-									self.sendMessage(chat_id=chat_id
-										,text=str(result)
-										,preview=False
-										)
-									result = ""
-			except Exception as e:
-				logging.error("Message processing failed! Error: " + str(e))
+					transcription_images_links = [i for i in removeListDuplicates(transcription_images_links) if i]#remove duplicate lists of files, thus removing duplicate images. Also, remove emties if they appear
+					print(transcription_images_links)#debug
+					if transcription_images_links:
+						for transcription in transcription_images_links:
+							letter_images = []
+							for letter_page in transcription:
+								#try opening a cached file
+								try:
+									makedirs(TRANSCRIPTION_LETTER_CACHE_PATH,exist_ok=True)#make a directory. Ignore if it already exists
+									with open(path.join(TRANSCRIPTION_LETTER_CACHE_PATH,path.basename(letter_page)),'rb') as f:
+										image_file = io.BytesIO(f.read())
+								except FileNotFoundError:
+									#if failed, download it
+									image_file = getLetterOnline(letter_page)
+								
+								try:
+									#in case the cache is damaged
+									image = Image.open(image_file)
+								except:
+									image = Image.open(getLetterOnline(letter_page))
+
+								letter_images += [image]
+
+							#creating a whole image
+							image_sizes = [i.size for i in letter_images]
+							max_height = max([i[1] for i in image_sizes])
+							whole_transcription_image = Image.new('RGB',( sum([i[0] for i in image_sizes]) , max_height  ) )
+							horiz_offset = 0
+							for i in letter_images:
+								whole_transcription_image.paste( i,(horiz_offset,0) )
+								horiz_offset += i.size[0]
+							whole_transcription_image.save(TRANSCRIPTION_TEMP_IMAGE_FILENAME)
+
+							#send image
+							with open(TRANSCRIPTION_TEMP_IMAGE_FILENAME,'rb') as pic:
+								self.sendPic(chat_id=chat_id
+									,pic=pic
+									)
+
+			# except Exception as e:
+			# 	logging.error("Message processing failed! Error: " + str(e))
+
 			# Updates global offset to get the new updates
 			self.LAST_UPDATE_ID = update.update_id + 1
 
