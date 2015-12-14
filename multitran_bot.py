@@ -3,7 +3,7 @@
 #TODO
 #-make donation info
 
-VERSION_NUMBER = (0,6,0)
+VERSION_NUMBER = (0,7,0)
 
 import logging
 import telegram
@@ -142,13 +142,22 @@ LINK_TO_DICT_PAGE_MESSAGE = {"EN": "\nLink to the dictionary page: ", "RU": "\n�
 
 CURRENT_LANGUAGE_IS_MESSAGE = {"EN": "\nCurrent language is ", "RU": "\nВыбранный язык:" }
 
+OPTION_TOGGLE_TRANSLATIONS_LINKS = {"EN": "Toggle translation links", "RU": "Вкл/выкл ссылки"}
+
+TRANSLATION_LINKS_ON_MESSAGE = {"EN": "Links in translations are now enabled", "RU": "Ссылки в переводах включены"}
+
+TRANSLATION_LINKS_OFF_MESSAGE = {"EN": "Links in translations are now disabled", "RU": "Ссылки в переводах выключены"}
+
 def split_list(alist,max_size=1):
 	"""Yield successive n-sized chunks from l."""
 	for i in range(0, len(alist), max_size):
 		yield alist[i:i+max_size]
 
-MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON],[EN_LANG_BUTTON,RU_LANG_BUTTON],list(LANGUAGE_INDICIES.keys())]
+MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON],[EN_LANG_BUTTON,RU_LANG_BUTTON],[OPTION_TOGGLE_TRANSLATIONS_LINKS],list(LANGUAGE_INDICIES.keys())]
 LANGUAGE_PICK_KEY_MARKUP = list(  split_list( list(LANGUAGE_INDICIES.keys()) ,3)  ) + [[BACK_BUTTON]]
+
+#This is assigned to user when it is created
+DEFAULT_SUBSCRIBERS = ["EN",1,[],True]
 
 ################
 ###GLOBALS######
@@ -303,7 +312,7 @@ class TelegramBot():
 			try:
 				self.subscribers[chat_id]
 			except KeyError:
-				self.subscribers[chat_id] = ["EN",1,[]]
+				self.subscribers[chat_id] = DEFAULT_SUBSCRIBERS
 				self.saveSubscribers()
 
 			#I had no idea you could send an empty message
@@ -334,6 +343,16 @@ class TelegramBot():
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,BACK_TO_MAIN_MENU_MESSAGE)
 							)
+					elif message == self.languageSupport(chat_id,OPTION_TOGGLE_TRANSLATIONS_LINKS):
+						self.subscribers[chat_id][3] = not self.subscribers[chat_id][3]
+						if self.subscribers[chat_id][3]:
+							self.sendMessage(chat_id=chat_id
+								,text=self.languageSupport(chat_id,TRANSLATION_LINKS_ON_MESSAGE)
+								)
+						else:
+							self.sendMessage(chat_id=chat_id
+								,text=self.languageSupport(chat_id,TRANSLATION_LINKS_OFF_MESSAGE)
+								)
 					elif message == RU_LANG_BUTTON:
 						self.subscribers[chat_id][0] = "RU"
 						self.saveSubscribers()
@@ -372,25 +391,39 @@ class TelegramBot():
 						and not len(i.find_all('table'))
 						]
 
-						def process_result(temp1):
+						def process_result(temp1,chat_id):
 							result = ""
+							word_index = 0
+							self.subscribers[chat_id][2] = []
 							for tr in temp1.find_all('tr'):
 								tds = tr.find_all('td')
-								def translations_row():
+								def translations_row(chat_id,word_index):
 									result = "`" + tr.find_all('a')[0].text + "`" + " "*5
 									for a in tr.find_all('a')[1:]:
 										if not 'i' in [i.name for i in a.children]:
-											result +=  a.text.replace("_","").replace("*","").replace("`","") + "; "
-									return result
+											i_word = a.text.replace("_","").replace("*","").replace("`","")
+											a_word = i_word + "; "
+											self.subscribers[chat_id][2] += [i_word]
+											result += (a_word) if not self.subscribers[chat_id][3] else ("/" + str(word_index) + " " + a_word + "\n")
+											word_index += 1
+									return (result,word_index)
 
 								if tds[0].has_attr('bgcolor'):
 									if tds[0]['bgcolor'] == "#DBDBDB":
-										result += "\n" + "*" + tr.text.split("|")[0].replace(tr.find_all('em')[0].text if tr.find_all('em') else "","").replace("в начало","").replace("\n","").replace("_","").replace("*","") + "*" + ( ( " "*5 + "_" + tr.find_all('em')[0].text  + "_") if tr.find_all('em') else "" )
+										#an initial word
+										result += "\n" + "*" + tr.text.split("|")[0].replace(tr.find_all('em')[0].text if tr.find_all('em') else "","").replace("в начало","").replace("фразы","").replace("\n","").replace("_","").replace("*","") + "*" + ( ( " "*5 + "_" + tr.find_all('em')[0].text  + "_") if tr.find_all('em') else "" )
 									else:
-										result += translations_row()
+										#translations
+										r, i = translations_row(chat_id,word_index)
+										result += r
+										word_index = i
 								else:
-									result += translations_row()
+									r, i = translations_row(chat_id,word_index)
+									result += r
+									word_index = i
 								result += "\n"
+
+							self.saveSubscribers()
 							return result
 
 
@@ -417,12 +450,12 @@ class TelegramBot():
 							else:
 								#request is in Russian
 								temp1= temp1[0]
-								result = process_result(temp1)
+								result = process_result(temp1,chat_id)
 
 						else:
 							#request is in foreign language
 							temp1= temp1[0]
-							result = process_result(temp1)
+							result = process_result(temp1,chat_id)
 
 						result += self.languageSupport(chat_id,LINK_TO_DICT_PAGE_MESSAGE) + page_url.replace(" ","+")
 
