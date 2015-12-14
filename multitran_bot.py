@@ -239,7 +239,7 @@ class TelegramBot():
 		try:
 			with open(SUBSCRIBERS_BACKUP_FILE,'rb') as f:
 				self.subscribers = pickle.load(f)
-				print("self.subscribers",self.subscribers)
+				logging.warning("self.subscribers",self.subscribers)
 		except FileNotFoundError:
 			logging.warning("Subscribers backup file not found. Starting with empty list!")
 
@@ -434,7 +434,7 @@ class TelegramBot():
 								result += r
 							result += "\n"
 
-						print(transcription_images_links)#debug
+						# print(transcription_images_links)#debug
 						self.saveSubscribers()
 						return result, transcription_images_links
 
@@ -517,7 +517,7 @@ class TelegramBot():
 
 					def getLetterOnline(letter_page):
 						'''gets a letter picture from multitran'''
-						print("letter_page",letter_page)
+						# print("letter_page",letter_page)
 						while True:
 							try:
 								req=requests.get("http://www.multitran.ru" + letter_page)
@@ -536,7 +536,7 @@ class TelegramBot():
 
 
 					transcription_images_links = [i for i in removeListDuplicates(transcription_images_links) if i]#remove duplicate lists of files, thus removing duplicate images. Also, remove emties if they appear
-					print(transcription_images_links)#debug
+					# print(transcription_images_links)#debug
 					if transcription_images_links:
 						for transcription in transcription_images_links:
 							letter_images = []
