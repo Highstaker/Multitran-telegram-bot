@@ -3,7 +3,7 @@
 #TODO
 #-make donation info
 
-VERSION_NUMBER = (0,8,0)
+VERSION_NUMBER = (0,8,1)
 
 import logging
 import telegram
@@ -567,6 +567,10 @@ class TelegramBot():
 								for i in letter_images:
 									whole_transcription_image.paste( i,(horiz_offset,0) )
 									horiz_offset += i.size[0]
+
+								whole_transcription_image = whole_transcription_image.convert('L')
+								whole_transcription_image = whole_transcription_image.point(lambda x: 0 if x<128 else 255, '1')
+
 								whole_transcription_image.save(TRANSCRIPTION_TEMP_IMAGE_FILENAME)
 
 								#send image
