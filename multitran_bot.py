@@ -3,7 +3,7 @@
 #TODO
 #-make donation info
 
-VERSION_NUMBER = (0,8,1)
+VERSION_NUMBER = (0,8,2)
 
 import logging
 import telegram
@@ -275,6 +275,7 @@ class TelegramBot():
 					continue
 				else:
 					logging.error("Could not send message. Error: " + str(e))
+					self.sendMessage(chat_id=chat_id,text="Unknown error!")
 			break
 
 	def sendPic(self,chat_id,pic,caption=None):
@@ -287,8 +288,13 @@ class TelegramBot():
 				pic.seek(0)
 				self.bot.sendPhoto(chat_id=chat_id,photo=pic,caption=caption)
 			except Exception as e:
-				logging.error("Could not send picture. Retrying! Error: " + str(e))
-				continue
+				if ("urlopen error" in str(e)) or ("timed out" in str(e)):
+					logging.error("Could not send message. Retrying! Error: " + str(e))
+					sleep(3)
+					continue
+				else:
+					logging.error("Could not send message. Error: " + str(e))
+					self.sendMessage(chat_id=chat_id,text="Unknown error!")
 			break
 
 	def getUpdates(self):
