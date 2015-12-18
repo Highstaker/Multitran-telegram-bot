@@ -239,7 +239,7 @@ class TelegramBot():
 		try:
 			with open(SUBSCRIBERS_BACKUP_FILE,'rb') as f:
 				self.subscribers = pickle.load(f)
-				logging.warning("self.subscribers",self.subscribers)
+				logging.warning(("self.subscribers",self.subscribers))
 		except FileNotFoundError:
 			logging.warning("Subscribers backup file not found. Starting with empty list!")
 
