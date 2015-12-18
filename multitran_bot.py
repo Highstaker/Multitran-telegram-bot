@@ -275,7 +275,6 @@ class TelegramBot():
 					continue
 				else:
 					logging.error("Could not send message. Error: " + str(e))
-					self.sendMessage(chat_id=chat_id,text="Unknown error!")
 			break
 
 	def sendPic(self,chat_id,pic,caption=None):
@@ -294,7 +293,6 @@ class TelegramBot():
 					continue
 				else:
 					logging.error("Could not send message. Error: " + str(e))
-					self.sendMessage(chat_id=chat_id,text="Unknown error!")
 			break
 
 	def getUpdates(self):
