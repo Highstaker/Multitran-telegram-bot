@@ -3,7 +3,7 @@
 #TODO
 #-make donation info
 
-VERSION_NUMBER = (0,8,2)
+VERSION_NUMBER = (0, 8, 3)
 
 import logging
 import telegram
