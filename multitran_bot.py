@@ -75,6 +75,7 @@ ABOUT_BUTTON = {"EN" : "ℹ️ About", "RU": "ℹ️ О программе"}
 RATE_ME_BUTTON = {"EN" : "⭐️ Like me? Rate!", "RU": "⭐️ Нравится бот? Оцени!"}
 EN_LANG_BUTTON = "Bot language:🇬🇧 EN"
 RU_LANG_BUTTON = "Язык бота:🇷🇺 RU"
+OTHER_BOTS_BUTTON = {"EN":"👾 My other bots", "RU": "👾 Другие мои боты"}
 
 ##############
 ####MESSAGES
@@ -138,6 +139,15 @@ Your ⭐️⭐️⭐️⭐️⭐️ would be really appreciated!
 """
 }
 
+OTHER_BOTS_MESSAGE = {"EN": """*My other bots*:
+
+@OmniCurrencyExchangeBot: a currency converter bot supporting past rates and graphs.
+"""
+, "RU": """*Другие мои боты*:
+@OmniCurrencyExchangeBot: Конвертер валют с поддержкой графиков и прошлых курсов.
+"""
+}
+
 LANGUAGE_IS_SET_TO_MESSAGE = {"EN": "Language is set to ", "RU":"Язык установлен на "}
 
 SELECT_DICT_LANGUAGE_MESSAGE = {"EN": "Select language", "RU":"Выберите язык"}
@@ -163,7 +173,12 @@ def split_list(alist,max_size=1):
 	for i in range(0, len(alist), max_size):
 		yield alist[i:i+max_size]
 
-MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON],[EN_LANG_BUTTON,RU_LANG_BUTTON],[OPTION_TOGGLE_TRANSLATIONS_LINKS],list(LANGUAGE_INDICIES.keys())]
+MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],
+[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON,OTHER_BOTS_BUTTON],
+[EN_LANG_BUTTON,RU_LANG_BUTTON],
+[OPTION_TOGGLE_TRANSLATIONS_LINKS],
+list(LANGUAGE_INDICIES.keys())]
+
 LANGUAGE_PICK_KEY_MARKUP = list(  split_list( list(LANGUAGE_INDICIES.keys()) ,3)  ) + [[BACK_BUTTON]]
 
 #This is assigned to user when it is created
@@ -348,6 +363,10 @@ class TelegramBot():
 					elif message == "/rate" or message == self.languageSupport(chat_id,RATE_ME_BUTTON):
 						self.sendMessage(chat_id=chat_id
 							,text=self.languageSupport(chat_id,RATE_ME_MESSAGE)
+							)
+					elif message == "/otherbots" or message == self.languageSupport(chat_id,OTHER_BOTS_BUTTON):
+						self.sendMessage(chat_id=chat_id
+							,text=self.languageSupport(chat_id,OTHER_BOTS_MESSAGE)
 							)
 					elif message == self.languageSupport(chat_id,PICK_LANGUAGE_BUTTON):
 						self.sendMessage(chat_id=chat_id
