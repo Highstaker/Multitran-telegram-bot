@@ -3,7 +3,7 @@
 #TODO
 #-make donation info
 
-VERSION_NUMBER = (0, 8, 3)
+VERSION_NUMBER = (0, 8, 4)
 
 import logging
 import telegram
@@ -276,7 +276,7 @@ class TelegramBot():
 						text=text,
 						parse_mode='Markdown',
 						disable_web_page_preview=(not preview),
-						reply_markup=telegram.ReplyKeyboardMarkup(key_markup)
+						reply_markup=telegram.ReplyKeyboardMarkup(key_markup, resize_keyboard=True)
 						)
 			except Exception as e:
 				if "Message is too long" in str(e):
