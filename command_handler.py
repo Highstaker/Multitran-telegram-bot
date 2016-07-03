@@ -1,5 +1,6 @@
 import functools
-from threading import Thread
+from threading import Thread, Lock
+from queue import Queue
 
 from telegram.ext import CommandHandler, MessageHandler, Filters
 from telegram import ReplyKeyboardMarkup, ParseMode
@@ -16,12 +17,28 @@ def split_list(alist,max_size=1):
 	for i in range(0, len(alist), max_size):
 		yield alist[i:i+max_size]
 
+# async_command_lock = Lock()
+async_command_runner_thread = None
+async_command_queue = Queue()
+
+def async_command_runner():
+	"""Thread that runs processors one after another"""
+	while True:
+		func, self, bot, update = async_command_queue.get()
+		print("running processor")#debug
+		func(self, bot, update)
+
 def command_async(func):
+	"""runs a command processor in a separate thread. Uses a queue to run processors one after another"""
 	@functools.wraps(func)
 	def async_wrapper(self, bot, update):
 		print("async")#debug
-		t = Thread(target=func, args=(self, bot, update,))
-		t.start()
+		global async_command_runner_thread
+		if not async_command_runner_thread or not async_command_runner_thread.is_alive():
+			async_command_runner_thread = t = Thread(target=async_command_runner)
+			t.start()
+		print("putting")#debug
+		async_command_queue.put((func, self, bot, update,))
 	return async_wrapper
 
 
@@ -74,7 +91,7 @@ class UserCommandHandler(object):
 		@functools.wraps(func)
 		def wrapper(self, bot, update,  *args, **kwargs):
 			print("command method",)
-			print("command method", self, bot, update,  args, kwargs, sep="||")#debug
+			# print("command method", self, bot, update,  args, kwargs, sep="||")#debug
 			chat_id = update.message.chat_id
 			self.userparams.initializeUser(chat_id=chat_id)
 
@@ -158,8 +175,12 @@ class UserCommandHandler(object):
 	@_command_method
 	@command_async
 	def command_find_word(self, bot, update):
-		for i in range(10000):
-			print(2**i)
+
+
+		# TESTING CRAP
+		for i in range(30000):
+			a = 2**i
+			# print(a)
 		chat_id = update.message.chat_id
 		bot.sendMessage(chat_id, "OKAY!")
 	
