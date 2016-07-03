@@ -9,7 +9,8 @@ from textual_data import *
 from language_support import LanguageSupport
 from userparams import UserParams
 from button_handler import getMainMenu
-from multitran_processor import MultitranProcessor
+from multitran_processor import message_result
+from activity_logger import ActivityLogger
 
 
 def split_list(alist,max_size=1):
@@ -49,6 +50,8 @@ class UserCommandHandler(object):
 		self.dispatcher = dispatcher
 
 		self.userparams = UserParams(USERS_DB_FILENAME)
+
+		self.activity_logger = ActivityLogger()
 
 		self._addHandlers()
 
@@ -132,10 +135,15 @@ class UserCommandHandler(object):
 		"""Decorator for functions that are invoked on commands. Ensures that the user is initialized."""
 		@functools.wraps(func)
 		def wrapper(self, bot, update,  *args, **kwargs):
-			print("command method",)
+			print("command method",)#debug
 			# print("command method", self, bot, update,  args, kwargs, sep="||")#debug
 			chat_id = update.message.chat_id
+
+			# Initialize user, if not present in DB
 			self.userparams.initializeUser(chat_id=chat_id)
+
+			# write a tick to user activity log
+			self.activity_logger.tick(chat_id)
 
 			# noinspection PyCallingNonCallable
 			func(self, bot, update,  *args, **kwargs)
@@ -217,14 +225,19 @@ class UserCommandHandler(object):
 	@_command_method
 	@command_async
 	def command_find_word(self, bot, update):
-
-
-		# TESTING CRAP
-		for i in range(30000):
-			a = 2**i
-			# print(a)
+		msg = update.message.text
 		chat_id = update.message.chat_id
-		self.sendMessage(bot, update, "OKAY!")
+
+		lang = self.userparams.getEntry(chat_id, "dict_lang")
+		result = message_result(msg, lang)
+		self.sendMessage(bot, update, result)
+
+		# # TESTING CRAP
+		# for i in range(30000):
+		# 	a = 2**i
+		# 	# print(a)
+		# chat_id = update.message.chat_id
+		# self.sendMessage(bot, update, "OKAY!")
 	
 	# noinspection PyArgumentList
 	@_command_method
