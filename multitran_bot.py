@@ -72,11 +72,11 @@ class MultitranBot(object):
 
 
 
-
-def split_list(alist,max_size=1):
-	"""Yield successive n-sized chunks from l."""
-	for i in range(0, len(alist), max_size):
-		yield alist[i:i+max_size]
+#
+# def split_list(alist,max_size=1):
+# 	"""Yield successive n-sized chunks from l."""
+# 	for i in range(0, len(alist), max_size):
+# 		yield alist[i:i+max_size]
 
 # MAIN_MENU_KEY_MARKUP = [[PICK_LANGUAGE_BUTTON],
 # [HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON,OTHER_BOTS_BUTTON],
@@ -87,7 +87,7 @@ def split_list(alist,max_size=1):
 # LANGUAGE_PICK_KEY_MARKUP = list(  split_list( list(LANGUAGE_INDICIES.keys()) ,3)  ) + [[BACK_BUTTON]]
 
 #This is assigned to user when it is created
-DEFAULT_SUBSCRIBERS = ["EN",1,[],True]
+# DEFAULT_SUBSCRIBERS = ["EN",1,[],True]
 
 
 
