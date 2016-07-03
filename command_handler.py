@@ -71,13 +71,55 @@ class UserCommandHandler(object):
 		self.dispatcher.add_error_handler(self.error_handler)
 
 	def sendMessage(self, bot, update, message, key_markdown=None):
+		def breakLongMessage(msg, max_chars_per_message=2048):
+			"""
+			Breaks a message that is too long.
+			:param max_chars_per_message: maximum amount of characters per message.
+			The official maximum is 4096.
+			Changing this is not recommended.
+			:param msg: message to be split
+			:return: a list of message pieces
+			"""
+
+			# let's split the message by newlines first
+			message_split = msg.split("\n")
+
+			# the result will be stored here
+			broken = []
+
+			# splitting routine
+			while message_split:
+				result = message_split.pop(0) + "\n"
+				if len(result) > max_chars_per_message:
+					# The chunk is huge. Split it not caring for newlines.
+					broken += [result[i:i + max_chars_per_message].strip("\n\t\r ")
+							   for i in range(0, len(result), max_chars_per_message)]
+				else:
+					# It's a smaller chunk, append others until their sum is bigger than maximum
+					while len(result) <= max_chars_per_message:
+						if not message_split:
+							# if the original ran out
+							break
+						# check if the next chunk makes the merged chunk it too big
+						if len(result) + len(message_split[0]) <= max_chars_per_message:
+							# nope. append chunk
+							result += message_split.pop(0) + "\n"
+						else:
+							# yes, it does. Stop on this.
+							break
+					broken += [result.strip("\n\t\r ")]
+
+			return broken
+
+
 		chat_id = update.message.chat_id
 		lS = LanguageSupport(self.userparams.getLang(chat_id)).languageSupport
 		msg = lS(message)
 		if not key_markdown:
 			key_markdown = MMKM = lS(getMainMenu())
 
-		bot.sendMessage(chat_id=chat_id, text=msg,
+		for m in breakLongMessage(msg):
+			bot.sendMessage(chat_id=chat_id, text=m,
 						reply_markup=ReplyKeyboardMarkup(key_markdown, resize_keyboard=True),
 						parse_mode=ParseMode.MARKDOWN
 						)
@@ -182,7 +224,7 @@ class UserCommandHandler(object):
 			a = 2**i
 			# print(a)
 		chat_id = update.message.chat_id
-		bot.sendMessage(chat_id, "OKAY!")
+		self.sendMessage(bot, update, "OKAY!")
 	
 	# noinspection PyArgumentList
 	@_command_method
