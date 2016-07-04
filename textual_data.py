@@ -1,7 +1,7 @@
 from os import path
 import sys
 
-VERSION_NUMBER = (1, 0, 5)
+VERSION_NUMBER = (1, 0, 6)
 
 if getattr(sys, 'frozen', False):
 	# frozen
