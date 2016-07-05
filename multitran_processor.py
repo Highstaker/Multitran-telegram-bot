@@ -42,7 +42,7 @@ def processTable(table):
 				if not 'i' in [i.name for i in a.children]:
 					i_word = escape_markdown(a.text)
 					a_word = i_word + "; "
-					words_list += [i_word]
+					words_list += [i_word.strip(" \n\t\r")]
 					result += a_word
 					# result += (a_word) if not self.subscribers[chat_id][3] else (
 					# "/" + str(word_index) + " " + a_word + "\n")
@@ -54,7 +54,7 @@ def processTable(table):
 			result += "\n" + "*" + escape_markdown(tr.text.split("|")[0].replace(
 				tr.find_all('em')[0].text if tr.find_all('em') else "", "").replace("в начало", "").replace("фразы",
 																											"").replace(
-				"\n", "")) + "*" + ( #cursive
+				"\n", "")) + "*" + (  #cursive
 					  (" " * 5 + "_" + escape_markdown(tr.find_all('em')[0].text) + "_") if tr.find_all('em') else "")
 			transcription_images_links += [[i["src"] for i in tr.find_all('img')]]
 		else:

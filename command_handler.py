@@ -12,6 +12,15 @@ from button_handler import getMainMenu
 from multitran_processor import dictQuery
 from activity_logger import ActivityLogger
 
+def is_integer(s):
+	"""
+	If a string is an integer, returns True
+	"""
+	try:
+		int(s)
+		return True
+	except ValueError:
+		return False
 
 def split_list(alist,max_size=1):
 	"""Yield successive n-sized chunks from l."""
@@ -225,7 +234,15 @@ class UserCommandHandler(object):
 	@_command_method
 	@command_async
 	def command_find_word(self, bot, update):
-		msg = update.message.text
+		self.findWord(bot, update)
+
+	def findWord(self, bot, update, word=None):
+		"""A method to find a word in dictionary. If word is provided, it is used.
+		If not, it is taken from the update."""
+		if word:
+			msg = word
+		else:
+			msg = update.message.text
 		chat_id = update.message.chat_id
 		lS = LanguageSupport(self.userparams.getLang(chat_id)).languageSupport
 
@@ -240,9 +257,11 @@ class UserCommandHandler(object):
 			if isinstance(result, tuple):
 				page_url = result[2]
 				cur_lang = [i for i in LANGUAGE_INDICIES.keys() if LANGUAGE_INDICIES[i] == lang][0]
+				db_variants = ""
 				if result[0] == 0:
 					#word found, print result
 					reply += result[1]
+					db_variants = ";".join(map(lambda x: x.replace(";", "").strip(" \n\t\r"),result[3]))
 
 				elif result[0] == 2:
 					# Word not found. Replacements may be present
@@ -250,6 +269,8 @@ class UserCommandHandler(object):
 					string_variants = ""
 					for n, variant in enumerate(variants):
 						string_variants += "/" + str(n) + " " + variant + "\n"
+					db_variants = ";".join(map(lambda x: x.replace(";", "").strip(" \n\t\r"), variants))
+					self.userparams.setEntry(chat_id, "variants", db_variants)
 					reply = "{0}\n{1}\n{2}".format(lS(WORD_NOT_FOUND_MESSAGE),
 											lS(POSSIBLE_REPLACEMENTS_MESSAGE) if variants else "",
 												 string_variants)
@@ -257,19 +278,23 @@ class UserCommandHandler(object):
 				reply += "{0}: {1}\n{2} {3}.".format(lS(LINK_TO_DICT_PAGE_MESSAGE), page_url,
 													 lS(CURRENT_LANGUAGE_IS_MESSAGE), cur_lang)
 				self.sendMessage(bot, update, reply)
+				self.userparams.setEntry(chat_id, "variants", db_variants)
 
 
-		# # TESTING CRAP
-		# for i in range(30000):
-		# 	a = 2**i
-		# 	# print(a)
-		# chat_id = update.message.chat_id
-		# self.sendMessage(bot, update, "OKAY!")
-	
 	# noinspection PyArgumentList
 	@_command_method
 	def unknown_command(self, bot, update):
-		self.sendMessage(bot, update, UNKNOWN_COMMAND_MESSAGE)
+		msg = update.message.text
+		chat_id = update.message.chat_id
+		if is_integer(msg[1:]):
+			# get the latest word list from DB and get the word from it by index
+			try:
+				word = self.userparams.getEntry(chat_id, "variants").split(";")[int(msg[1:])]
+				self.findWord(bot, update, word=word)
+			except IndexError:
+				self.sendMessage(bot, update, UNKNOWN_COMMAND_MESSAGE)
+		else:
+			self.sendMessage(bot, update, UNKNOWN_COMMAND_MESSAGE)
 	
 	# noinspection PyArgumentList
 	@_command_method

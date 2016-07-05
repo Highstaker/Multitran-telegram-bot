@@ -39,7 +39,7 @@ class UserParams(object):
 
 		self.TABLE_NAME = "UserParams"
 
-		self.initial = initial={"lang": "EN", "dict_lang": 1, "word_links": 0}
+		self.initial = initial={"lang": "EN", "dict_lang": 1, "word_links": 0, "variants": ""}
 
 		os.makedirs(path.join(SCRIPT_FOLDER, DATABASES_FOLDER_NAME), exist_ok=True)
 		self.filename = path.join(SCRIPT_FOLDER, DATABASES_FOLDER_NAME, filename + ".db")
@@ -68,7 +68,8 @@ class UserParams(object):
 		try:
 			self._run_command(command)
 		except sqlite3.OperationalError:
-			print("Column " + str(column) + " already exists!")
+			pass
+			# print("Column " + str(column) + " already exists!")
 
 	def createTable(self, data):
 		"""
@@ -127,7 +128,7 @@ class UserParams(object):
 		:return:
 		"""
 		command = "UPDATE " + self.TABLE_NAME + " SET " + str(param) + "=" \
-				+ ( ("'"+str(value)+"'") if isinstance(value, str) else str(value))  \
+				+ (("'" + str(value).replace("'", "''") + "'") if isinstance(value, str) else str(value))  \
 				+ " WHERE chat_id=" + str(chat_id) + ";"
 		self._run_command(command)
 
