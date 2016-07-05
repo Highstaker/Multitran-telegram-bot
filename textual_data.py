@@ -1,7 +1,7 @@
 from os import path
 import sys
 
-VERSION_NUMBER = (1, 0, 6)
+VERSION_NUMBER = (1, 1, 0)
 
 if getattr(sys, 'frozen', False):
 	# frozen
@@ -55,7 +55,7 @@ TOGGLE_TRANSLATIONS_LINKS_BUTTON = {"EN": "Toggle translation links", "RU": "В�
 #### TEXTS####
 ##############
 
-EN_LANG_MESSAGE = "Interface language is set ot English"
+EN_LANG_MESSAGE = "Interface language is set to English"
 
 RU_LANG_MESSAGE = "Язык интерфейса русский"
 
@@ -78,6 +78,10 @@ TRANSLATION_LINKS_ON_MESSAGE = {"EN": "Links in translations are now enabled", "
 TRANSLATION_LINKS_OFF_MESSAGE = {"EN": "Links in translations are now disabled", "RU": "Ссылки в переводах выключены"}
 
 UNKNOWN_COMMAND_MESSAGE = {"EN": "Unknown command", "RU": "Неизвестная команда"}
+
+MULTITRAN_DOWN_MESSAGE = {"EN": "Cannot connect to Multitran. Try again later, please.",
+						  "RU": "Не могу соединиться со словарём Мультитран. Пожалуйста, попробуйте позже.",
+						  }
 
 ##################
 #### BIG TEXTS####

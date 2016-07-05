@@ -1,5 +1,5 @@
 import functools
-from threading import Thread, Lock
+from threading import Thread
 from queue import Queue
 
 from telegram.ext import CommandHandler, MessageHandler, Filters
@@ -9,7 +9,7 @@ from textual_data import *
 from language_support import LanguageSupport
 from userparams import UserParams
 from button_handler import getMainMenu
-from multitran_processor import message_result
+from multitran_processor import dictQuery
 from activity_logger import ActivityLogger
 
 
@@ -18,7 +18,6 @@ def split_list(alist,max_size=1):
 	for i in range(0, len(alist), max_size):
 		yield alist[i:i+max_size]
 
-# async_command_lock = Lock()
 async_command_runner_thread = None
 async_command_queue = Queue()
 
@@ -26,19 +25,19 @@ def async_command_runner():
 	"""Thread that runs processors one after another"""
 	while True:
 		func, self, bot, update = async_command_queue.get()
-		print("running processor")#debug
+		# print("running processor")#debug
 		func(self, bot, update)
 
 def command_async(func):
 	"""runs a command processor in a separate thread. Uses a queue to run processors one after another"""
 	@functools.wraps(func)
 	def async_wrapper(self, bot, update):
-		print("async")#debug
+		# print("async")#debug
 		global async_command_runner_thread
 		if not async_command_runner_thread or not async_command_runner_thread.is_alive():
 			async_command_runner_thread = t = Thread(target=async_command_runner)
 			t.start()
-		print("putting")#debug
+		# print("putting")#debug
 		async_command_queue.put((func, self, bot, update,))
 	return async_wrapper
 
@@ -124,7 +123,8 @@ class UserCommandHandler(object):
 		for m in breakLongMessage(msg):
 			bot.sendMessage(chat_id=chat_id, text=m,
 						reply_markup=ReplyKeyboardMarkup(key_markdown, resize_keyboard=True),
-						parse_mode=ParseMode.MARKDOWN
+						parse_mode=ParseMode.MARKDOWN,
+						disable_web_page_preview=True,
 						)
 
 	##########
@@ -135,7 +135,7 @@ class UserCommandHandler(object):
 		"""Decorator for functions that are invoked on commands. Ensures that the user is initialized."""
 		@functools.wraps(func)
 		def wrapper(self, bot, update,  *args, **kwargs):
-			print("command method",)#debug
+			# print("command method",)#debug
 			# print("command method", self, bot, update,  args, kwargs, sep="||")#debug
 			chat_id = update.message.chat_id
 
@@ -227,10 +227,37 @@ class UserCommandHandler(object):
 	def command_find_word(self, bot, update):
 		msg = update.message.text
 		chat_id = update.message.chat_id
+		lS = LanguageSupport(self.userparams.getLang(chat_id)).languageSupport
 
 		lang = self.userparams.getEntry(chat_id, "dict_lang")
-		result = message_result(msg, lang)
-		self.sendMessage(bot, update, result)
+		result = dictQuery(msg, lang)
+
+
+		if result == 1:
+			self.sendMessage(bot, update, MULTITRAN_DOWN_MESSAGE)
+		else:
+			reply = ''
+			if isinstance(result, tuple):
+				page_url = result[2]
+				cur_lang = [i for i in LANGUAGE_INDICIES.keys() if LANGUAGE_INDICIES[i] == lang][0]
+				if result[0] == 0:
+					#word found, print result
+					reply += result[1]
+
+				elif result[0] == 2:
+					# Word not found. Replacements may be present
+					variants = result[1]
+					string_variants = ""
+					for n, variant in enumerate(variants):
+						string_variants += "/" + str(n) + " " + variant + "\n"
+					reply = "{0}\n{1}\n{2}".format(lS(WORD_NOT_FOUND_MESSAGE),
+											lS(POSSIBLE_REPLACEMENTS_MESSAGE) if variants else "",
+												 string_variants)
+
+				reply += "{0}: {1}\n{2} {3}.".format(lS(LINK_TO_DICT_PAGE_MESSAGE), page_url,
+													 lS(CURRENT_LANGUAGE_IS_MESSAGE), cur_lang)
+				self.sendMessage(bot, update, reply)
+
 
 		# # TESTING CRAP
 		# for i in range(30000):
