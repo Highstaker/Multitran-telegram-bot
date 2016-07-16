@@ -1,6 +1,7 @@
 import functools
 from threading import Thread
 from queue import Queue
+from os import remove as removeFile
 
 from telegram.ext import CommandHandler, MessageHandler, Filters
 from telegram import ReplyKeyboardMarkup, ParseMode
@@ -81,7 +82,12 @@ class UserCommandHandler(object):
 
 		self.dispatcher.add_error_handler(self.error_handler)
 
-	def sendMessage(self, bot, update, message, key_markdown=None):
+	def sendPic(self, bot, update, pic_filename, caption=""):
+		chat_id = update.message.chat_id
+		with open(pic_filename,"rb") as pic:
+			bot.sendPhoto(chat_id, pic, caption)
+
+	def sendMessage(self, bot, update, message, key_markdown=None, disable_web_page_preview=True):
 		def breakLongMessage(msg, max_chars_per_message=2048):
 			"""
 			Breaks a message that is too long.
@@ -133,7 +139,7 @@ class UserCommandHandler(object):
 			bot.sendMessage(chat_id=chat_id, text=m,
 						reply_markup=ReplyKeyboardMarkup(key_markdown, resize_keyboard=True),
 						parse_mode=ParseMode.MARKDOWN,
-						disable_web_page_preview=True,
+						disable_web_page_preview=disable_web_page_preview,
 						)
 
 	##########
@@ -175,7 +181,7 @@ class UserCommandHandler(object):
 		chat_id = update.message.chat_id
 		lS = LanguageSupport(self.userparams.getLang(chat_id)).languageSupport
 		msg = lS(ABOUT_MESSAGE).format(".".join([str(i) for i in VERSION_NUMBER]))
-		self.sendMessage(bot, update, msg)
+		self.sendMessage(bot, update, msg, disable_web_page_preview=False)
 	
 	# noinspection PyArgumentList
 	@_command_method
@@ -249,7 +255,6 @@ class UserCommandHandler(object):
 		lang = self.userparams.getEntry(chat_id, "dict_lang")
 		result = dictQuery(msg, lang)
 
-
 		if result == 1:
 			self.sendMessage(bot, update, MULTITRAN_DOWN_MESSAGE)
 		else:
@@ -258,10 +263,12 @@ class UserCommandHandler(object):
 				page_url = result[2]
 				cur_lang = [i for i in LANGUAGE_INDICIES.keys() if LANGUAGE_INDICIES[i] == lang][0]
 				db_variants = ""
+				transcription_filename = ""
 				if result[0] == 0:
 					#word found, print result
 					reply += result[1]
 					db_variants = ";".join(map(lambda x: x.replace(";", "").strip(" \n\t\r"),result[3]))
+					transcription_filename = result[4]
 
 				elif result[0] == 2:
 					# Word not found. Replacements may be present
@@ -277,8 +284,12 @@ class UserCommandHandler(object):
 
 				reply += "{0}: {1}\n{2} {3}.".format(lS(LINK_TO_DICT_PAGE_MESSAGE), page_url,
 													 lS(CURRENT_LANGUAGE_IS_MESSAGE), cur_lang)
+
 				self.sendMessage(bot, update, reply)
 				self.userparams.setEntry(chat_id, "variants", db_variants)
+				if transcription_filename:
+					self.sendPic(bot, update, transcription_filename)
+					removeFile(transcription_filename)
 
 
 	# noinspection PyArgumentList
