@@ -31,28 +31,30 @@ def getReplacementVariants(soup):
 		variants_list = [i for i in varia[0].find_next_sibling("td").text.split(";")]
 	return variants_list
 
-def processTable(table):
+def processTable(table, links_on=False):
 	result = ""
 	transcription_images_links = []
 	words_list = []
 	word_index = 0
+
+	def translations_row(word_index):
+		result = "`" + tr.find_all('a')[0].text + "`" + " " * 5
+		words_list = []
+		for a in tr.find_all('a')[1:]:
+			if not 'i' in [i.name for i in a.children]:
+				i_word = escape_markdown(a.text)
+				a_word = i_word + "; "
+				words_list += [i_word.strip(" \n\t\r")]
+				# add a word, checking if a user wants links
+				result += a_word if not links_on else ("/" + str(word_index) + " " + a_word + "\n")
+				# result += (a_word) if not self.subscribers[chat_id][3] else (
+				# "/" + str(word_index) + " " + a_word + "\n")
+				word_index += 1
+		return result, word_index, words_list
+
 	for tr in table.find_all('tr'):
 		# for each row, corresponds to topic
 		tds = tr.find_all('td')
-
-		def translations_row(word_index):
-			result = "`" + tr.find_all('a')[0].text + "`" + " " * 5
-			words_list = []
-			for a in tr.find_all('a')[1:]:
-				if not 'i' in [i.name for i in a.children]:
-					i_word = escape_markdown(a.text)
-					a_word = i_word + "; "
-					words_list += [i_word.strip(" \n\t\r")]
-					result += a_word
-					# result += (a_word) if not self.subscribers[chat_id][3] else (
-					# "/" + str(word_index) + " " + a_word + "\n")
-					word_index += 1
-			return result, word_index, words_list
 
 		if tds[0].has_attr('bgcolor') and tds[0]['bgcolor'] == "#DBDBDB":
 			# a header of the table, with initial word and its properties
@@ -70,7 +72,7 @@ def processTable(table):
 
 	return result, transcription_images_links, words_list
 
-def dictQuery(request, lang):
+def dictQuery(request, lang, links_on=False):
 	soup = None
 	for russian in range(2):
 		# try a foreign language in first iteration, and if not found, try Russian in second one.
@@ -86,7 +88,7 @@ def dictQuery(request, lang):
 			# word is found continue to processing
 
 			# have to extract translations_table[0] from list
-			result, transcription_images_links, words_list = processTable(translations_table[0])
+			result, transcription_images_links, words_list = processTable(translations_table[0], links_on)
 			# print(result, transcription_images_links, words_list)#debug
 
 			transcription_filename = createTranscription(transcription_images_links)

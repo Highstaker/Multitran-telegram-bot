@@ -253,7 +253,9 @@ class UserCommandHandler(object):
 		lS = LanguageSupport(self.userparams.getLang(chat_id)).languageSupport
 
 		lang = self.userparams.getEntry(chat_id, "dict_lang")
-		result = dictQuery(msg, lang)
+		links_on = bool(self.userparams.getEntry(chat_id, 'word_links'))
+
+		result = dictQuery(msg, lang, links_on)
 
 		if result == 1:
 			self.sendMessage(bot, update, MULTITRAN_DOWN_MESSAGE)
