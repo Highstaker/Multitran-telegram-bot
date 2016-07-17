@@ -1,7 +1,7 @@
 from os import path
 import sys
 
-VERSION_NUMBER = (1, 1, 3)
+VERSION_NUMBER = (1, 1, 4)
 
 if getattr(sys, 'frozen', False):
 	# frozen
@@ -49,6 +49,7 @@ EN_LANG_BUTTON = "Bot language:🇬🇧 EN"
 RU_LANG_BUTTON = "Язык бота:🇷🇺 RU"
 OTHER_BOTS_BUTTON = {"EN":"👾 My other bots", "RU": "👾 Другие мои боты"}
 TOGGLE_TRANSLATIONS_LINKS_BUTTON = {"EN": "Toggle translation links", "RU": "Вкл/выкл ссылки"}
+TOGGLE_TRANSCRIPTIONS_BUTTON = {"EN": "Toggle transcriptions", "RU": "Вкл/выкл транскрипции"}
 
 
 ##############
@@ -73,9 +74,13 @@ LINK_TO_DICT_PAGE_MESSAGE = {"EN": "\nLink to the dictionary page: ", "RU": "\n�
 
 CURRENT_LANGUAGE_IS_MESSAGE = {"EN": "\nCurrent language is ", "RU": "\nВыбранный язык:" }
 
-TRANSLATION_LINKS_ON_MESSAGE = {"EN": "Links in translations are now enabled", "RU": "Ссылки в переводах включены"}
+TRANSLATION_LINKS_ON_MESSAGE = {"EN": "Links in translations are enabled now", "RU": "Ссылки в переводах включены"}
 
-TRANSLATION_LINKS_OFF_MESSAGE = {"EN": "Links in translations are now disabled", "RU": "Ссылки в переводах выключены"}
+TRANSLATION_LINKS_OFF_MESSAGE = {"EN": "Links in translations are disabled now", "RU": "Ссылки в переводах отключены"}
+
+TRANSCRIPTIONS_ON_MESSAGE = {"EN": "Transcriptions are enabled now", "RU": "Транскрипции включены"}
+
+TRANSCRIPTIONS_OFF_MESSAGE = {"EN": "Transcriptions are disabled now", "RU": "Транскрипции отключены"}
 
 UNKNOWN_COMMAND_MESSAGE = {"EN": "Unknown command", "RU": "Неизвестная команда"}
 

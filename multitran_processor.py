@@ -110,12 +110,17 @@ def getMultitranPage(word, lang, from_russian=False, attempts=3):
 	else:
 		page_url = 'http://www.multitran.ru/c/m.exe?l1={0}&s={1}'.format(lang, word)
 
+	MULTITRAN_ERROR_TEXT = 'Multitran is down!'
+
 	for i in range(attempts):
-		req = requests.get(page_url)
+		try:
+			req = requests.get(page_url)
+		except:
+			raise MultitranError(MULTITRAN_ERROR_TEXT)
 		if req.status_code == 200:
 			break
 	else:
-		raise MultitranError('Multitran is down!')
+		raise MultitranError(MULTITRAN_ERROR_TEXT)
 
 	return req.status_code, req.content.decode("cp1251","replace"), page_url
 

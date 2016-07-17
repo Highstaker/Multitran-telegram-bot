@@ -71,7 +71,7 @@ class UserCommandHandler(object):
 		self.dispatcher.add_handler(CommandHandler('rate', self.command_rateme))
 		self.dispatcher.add_handler(CommandHandler('otherbots', self.command_otherbots))
 		self.dispatcher.add_handler(CommandHandler('links', self.command_toggle_links))
-
+		self.dispatcher.add_handler(CommandHandler('transcriptions', self.command_toggle_transcriptions))
 
 		# non-command message
 		self.dispatcher.add_handler(MessageHandler([Filters.text], self.messageMethod))
@@ -204,6 +204,18 @@ class UserCommandHandler(object):
 		else:
 			msg = TRANSLATION_LINKS_ON_MESSAGE
 		self.sendMessage(bot, update, msg)
+
+	# noinspection PyArgumentList
+	@_command_method
+	def command_toggle_transcriptions(self, bot, update):
+		chat_id = update.message.chat_id
+		t_on = self.userparams.getEntry(chat_id, param="transcriptions_on")
+		self.userparams.setEntry(chat_id, param="transcriptions_on", value=int(not t_on))
+		if t_on:
+			msg = TRANSCRIPTIONS_OFF_MESSAGE
+		else:
+			msg = TRANSCRIPTIONS_ON_MESSAGE
+		self.sendMessage(bot, update, msg)
 	
 	# noinspection PyArgumentList
 	@_command_method
@@ -289,9 +301,10 @@ class UserCommandHandler(object):
 
 				self.sendMessage(bot, update, reply)
 				self.userparams.setEntry(chat_id, "variants", db_variants)
-				if transcription_filename:
-					self.sendPic(bot, update, transcription_filename)
-					removeFile(transcription_filename)
+				if self.userparams.getEntry(chat_id, "transcriptions_on"):
+					if transcription_filename:
+						self.sendPic(bot, update, transcription_filename)
+						removeFile(transcription_filename)
 
 
 	# noinspection PyArgumentList
@@ -325,6 +338,8 @@ class UserCommandHandler(object):
 			self.command_rateme(bot, update)
 		elif message in LanguageSupport.allVariants(TOGGLE_TRANSLATIONS_LINKS_BUTTON):
 			self.command_toggle_links(bot, update)
+		elif message in LanguageSupport.allVariants(TOGGLE_TRANSCRIPTIONS_BUTTON):
+			self.command_toggle_transcriptions(bot, update)
 		elif message == EN_LANG_BUTTON:
 			self.command_set_lang_en(bot, update)
 		elif message == RU_LANG_BUTTON:
