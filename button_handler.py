@@ -10,7 +10,6 @@ def getMainMenu():
 	:return: list of lists
 	"""
 
-
 	MAIN_MENU_KEY_MARKUP = [
 		[PICK_LANGUAGE_BUTTON],
 		[HELP_BUTTON,ABOUT_BUTTON,RATE_ME_BUTTON,OTHER_BOTS_BUTTON],

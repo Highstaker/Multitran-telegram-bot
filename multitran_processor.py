@@ -74,6 +74,7 @@ def processTable(table, links_on=False):
 
 def dictQuery(request, lang, links_on=False):
 	soup = None
+	page_url = ""
 	for russian in range(2):
 		# try a foreign language in first iteration, and if not found, try Russian in second one.
 		try:

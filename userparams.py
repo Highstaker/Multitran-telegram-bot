@@ -7,7 +7,6 @@ from os import path
 from textual_data import DATABASES_FOLDER_NAME, SCRIPT_FOLDER
 
 
-
 def getSQLiteType(param):
 	"""
 	Returns the SQLite type of a given parameter
@@ -25,6 +24,7 @@ def getSQLiteType(param):
 
 	return result
 
+
 # noinspection SqlNoDataSourceInspection
 class UserParams(object):
 	"""docstring for UserParams"""
@@ -32,7 +32,6 @@ class UserParams(object):
 		"""
 
 		:param filename: name of database file without extension
-		:param initial: a dictionary of initial parameters. Used to initialize the table
 		:return:
 		"""
 		super(UserParams, self).__init__()
@@ -92,7 +91,6 @@ class UserParams(object):
 		"""
 		Adds a new user to table, if it doesn't exist
 		:param chat_id: id of a user. added as the first column
-		:param data: a dictionary of values to set for a user
 		:return:
 		"""
 		data = self.initial
