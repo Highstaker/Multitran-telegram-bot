@@ -1,7 +1,7 @@
 from os import path
 import sys
 
-VERSION_NUMBER = (1, 1, 5)
+VERSION_NUMBER = (1, 1, 6)
 
 if getattr(sys, 'frozen', False):
 	# frozen
@@ -50,6 +50,8 @@ RU_LANG_BUTTON = "Язык бота:🇷🇺 RU"
 OTHER_BOTS_BUTTON = {"EN":"👾 My other bots", "RU": "👾 Другие мои боты"}
 TOGGLE_TRANSLATIONS_LINKS_BUTTON = {"EN": "Toggle translation links", "RU": "Вкл/выкл ссылки"}
 TOGGLE_TRANSCRIPTIONS_BUTTON = {"EN": "Toggle transcriptions", "RU": "Вкл/выкл транскрипции"}
+SHOW_KEYS_BUTTON = {"EN": "Show keyboard", "RU": "Показать клавиатуру"}
+HIDE_KEYS_BUTTON = {"EN": "Hide keyboard", "RU": "Спрятать клавиатуру"}
 
 
 ##############
@@ -87,6 +89,10 @@ UNKNOWN_COMMAND_MESSAGE = {"EN": "Unknown command", "RU": "Неизвестна�
 MULTITRAN_DOWN_MESSAGE = {"EN": "Cannot connect to Multitran. Try again later, please.",
 						  "RU": "Не могу соединиться со словарём Мультитран. Пожалуйста, попробуйте позже.",
 						  }
+
+KEYBOARD_HIDDEN_MESSAGE = {"EN": "Keyboard is hidden", "RU": "Клавиатура спрятана"}
+
+KEYBOARD_SHOWN_MESSAGE = {"EN": "Keyboard is shown", "RU": "Клавиатура отображена"}
 
 ##################
 #### BIG TEXTS####

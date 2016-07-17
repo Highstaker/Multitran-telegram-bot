@@ -72,6 +72,7 @@ class UserCommandHandler(object):
 		self.dispatcher.add_handler(CommandHandler('otherbots', self.command_otherbots))
 		self.dispatcher.add_handler(CommandHandler('links', self.command_toggle_links))
 		self.dispatcher.add_handler(CommandHandler('transcriptions', self.command_toggle_transcriptions))
+		self.dispatcher.add_handler(CommandHandler('bottom_row', self.command_toggle_bottom_row))
 
 		# non-command message
 		self.dispatcher.add_handler(MessageHandler([Filters.text], self.messageMethod))
@@ -133,7 +134,9 @@ class UserCommandHandler(object):
 		lS = LanguageSupport(self.userparams.getLang(chat_id)).languageSupport
 		msg = lS(message)
 		if not key_markdown:
-			key_markdown = MMKM = lS(getMainMenu())
+			key_markdown = MMKM = lS(getMainMenu(hide_keys=self.userparams.getEntry(chat_id, "buttons_hidden"),
+												hide_bottom_row=self.userparams.getEntry(chat_id, "bottom_lang_row_hidden")
+												))
 
 		for m in breakLongMessage(msg):
 			bot.sendMessage(chat_id=chat_id, text=m,
@@ -219,14 +222,36 @@ class UserCommandHandler(object):
 		else:
 			msg = TRANSCRIPTIONS_ON_MESSAGE
 		self.sendMessage(bot, update, msg)
-	
+
+	# noinspection PyArgumentList
+	@_command_method
+	def command_hide_keyboard(self, bot, update):
+		chat_id = update.message.chat_id
+		self.userparams.setEntry(chat_id, "buttons_hidden", 1)
+		self.sendMessage(bot, update, KEYBOARD_HIDDEN_MESSAGE)
+
+	# noinspection PyArgumentList
+	@_command_method
+	def command_show_keyboard(self, bot, update):
+		chat_id = update.message.chat_id
+		self.userparams.setEntry(chat_id, "buttons_hidden", 0)
+		self.sendMessage(bot, update, KEYBOARD_SHOWN_MESSAGE)
+
+	# noinspection PyArgumentList
+	@_command_method
+	def	command_toggle_bottom_row(self, bot, update):
+		chat_id = update.message.chat_id
+		hidden = self.userparams.getEntry(chat_id, "bottom_lang_row_hidden")
+		self.userparams.setEntry(chat_id, "bottom_lang_row_hidden", int(not hidden))
+		self.sendMessage(bot, update, "bottom row")
+
 	# noinspection PyArgumentList
 	@_command_method
 	def command_set_lang_en(self, bot, update):
 		chat_id = update.message.chat_id
 		self.userparams.setEntry(chat_id, param="lang", value="EN")
 		self.sendMessage(bot, update, EN_LANG_MESSAGE)
-	
+
 	# noinspection PyArgumentList
 	@_command_method
 	def command_set_lang_ru(self, bot, update):
@@ -349,6 +374,10 @@ class UserCommandHandler(object):
 			self.command_set_lang_ru(bot, update)
 		elif message in LanguageSupport.allVariants(PICK_LANGUAGE_BUTTON):
 			self.command_open_language_menu(bot, update)
+		elif message in LanguageSupport.allVariants(HIDE_KEYS_BUTTON):
+			self.command_hide_keyboard(bot, update)
+		elif message in LanguageSupport.allVariants(SHOW_KEYS_BUTTON):
+			self.command_show_keyboard(bot, update)
 		elif message in LanguageSupport.allVariants(BACK_BUTTON):
 			self.sendMessage(bot, update, BACK_TO_MAIN_MENU_MESSAGE)
 		elif message in LANGUAGE_INDICIES.keys():

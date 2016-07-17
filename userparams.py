@@ -38,7 +38,14 @@ class UserParams(object):
 
 		self.TABLE_NAME = "UserParams"
 
-		self.initial = initial={"lang": "EN", "dict_lang": 1, "word_links": 0, "variants": "", "transcriptions_on": 1}
+		self.initial = initial={"lang": "EN",
+								"dict_lang": 1,
+								"word_links": 0,
+								"variants": "",
+								"transcriptions_on": 1,
+								"buttons_hidden": 0,
+								"bottom_lang_row_hidden": 1
+								}
 
 		os.makedirs(path.join(SCRIPT_FOLDER, DATABASES_FOLDER_NAME), exist_ok=True)
 		self.filename = path.join(SCRIPT_FOLDER, DATABASES_FOLDER_NAME, filename + ".db")
