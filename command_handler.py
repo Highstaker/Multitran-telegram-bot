@@ -150,18 +150,21 @@ class UserCommandHandler(object):
 		"""Decorator for functions that are invoked on commands. Ensures that the user is initialized."""
 		@functools.wraps(func)
 		def wrapper(self, bot, update,  *args, **kwargs):
-			# print("command method",)#debug
+			# print("command method", func.__name__,)#debug
 			# print("command method", self, bot, update,  args, kwargs, sep="||")#debug
 			chat_id = update.message.chat_id
 
 			# Initialize user, if not present in DB
 			self.userparams.initializeUser(chat_id=chat_id)
 
-			# write a tick to user activity log
-			self.activity_logger.tick(chat_id)
+			# filter functions that don't need ticks, or else there will be two ticks on every non-slash command
+			# because it also counts messageMethod
+			if func.__name__ not in ("messageMethod"):
+				# write a tick to user activity log
+				self.activity_logger.tick(chat_id)
 
 			# noinspection PyCallingNonCallable
-			func(self, bot, update,  *args, **kwargs)
+			func(self, bot, update, *args, **kwargs)
 		return wrapper
 
 	# noinspection PyArgumentList
