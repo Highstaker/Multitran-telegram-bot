@@ -1,0 +1,7 @@
+help - access the help
+about - general info
+rate - a page in StoreBot
+otherbots - a list of other bots by this developer
+links - toggle links to words in translations
+transcriptions - toggle transcriptions where available
+bottom_row - toggle the ugly language buttons row at the bottom
