@@ -28,7 +28,6 @@ class ActivityLogger(object):
 		with open(self.logfile, "r") as f:
 			data = f.read()
 		data = tuple(tuple(map(int, i.split(" "))) for i in data.split("\n") if i)
-		# print(data)#debug
 
 		unique_users = {i[1] for i in data}
 		n_unique_users = len(unique_users)
@@ -44,24 +43,16 @@ class ActivityLogger(object):
 																	month=x.tm_mon,
 																	year=x.tm_year)))
 
-
-		# print("timestructs", list(timestructs))#debug
-		# print(sum(1 for i in grouped_ticks))#debug
-		# print("grouped_ticks", list(grouped_ticks))#debug
-
 		from matplotlib import dates
 		# floats representing times on x axit in pyplot format
 		times = tuple(dates.date2num(i[0]) for i in grouped_ticks)
 		# number of user activities. Represented on Y axis
 		activities = tuple(i[1] for i in grouped_ticks)
 
-		# print("times", times)#debug
-		# print("activities", activities)#debug
-
 		import matplotlib
 		# Force matplotlib to not use any Xwindows backend.
-		# matplotlib.use('Agg')
-		matplotlib.use('TkAgg')
+		matplotlib.use('Agg')
+		# matplotlib.use('TkAgg')
 		import matplotlib.pyplot as plt
 
 		def calculateImageSize(f, data, min_distance=0.1, scale=1):
@@ -94,7 +85,6 @@ class ActivityLogger(object):
 		plt.subplots_adjust(bottom=.2)
 		plt.grid(b=True, which="major", color="r", linestyle='-')
 		plt.grid(b=True, which="minor", color="g", linestyle='--')
-		# plt.show()
 		savefilename = '001.png'
 		fig.savefig(savefilename)
 		plt.close(fig)
