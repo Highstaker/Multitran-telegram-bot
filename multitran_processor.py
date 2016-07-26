@@ -106,10 +106,17 @@ def dictQuery(request, lang, links_on=False):
 
 def getMultitranPage(word, lang, from_russian=False, attempts=3):
 	"""Processes the Multitran page. Returns the status code and content."""
+
+	# escape the word in URL.
+	try:
+		word_escaped = requests.utils.quote(word.encode("cp1251"))
+	except UnicodeEncodeError:
+		word_escaped = requests.utils.quote(word.encode('utf-8', 'replace'))
+
 	if from_russian:
-		page_url = 'http://www.multitran.ru/c/m.exe?l1=2&l2={0}&s={1}'.format(lang, word)
+		page_url = 'http://www.multitran.ru/c/m.exe?l1=2&l2={0}&s={1}'.format(lang, word_escaped)
 	else:
-		page_url = 'http://www.multitran.ru/c/m.exe?l1={0}&s={1}'.format(lang, word)
+		page_url = 'http://www.multitran.ru/c/m.exe?l1={0}&s={1}'.format(lang, word_escaped)
 
 	MULTITRAN_ERROR_TEXT = 'Multitran is down!'
 
@@ -123,7 +130,7 @@ def getMultitranPage(word, lang, from_russian=False, attempts=3):
 	else:
 		raise MultitranError(MULTITRAN_ERROR_TEXT)
 
-	return req.status_code, req.content.decode("cp1251","replace"), page_url
+	return req.status_code, req.content.decode("cp1251", "replace"), page_url
 
 
 def createTranscription(transcription_images_links):
