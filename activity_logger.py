@@ -85,9 +85,11 @@ class ActivityLogger(object):
 		plt.subplots_adjust(bottom=.2)
 		plt.grid(b=True, which="major", color="r", linestyle='-')
 		plt.grid(b=True, which="minor", color="g", linestyle='--')
-		savefilename = '001.png'
+		savefilename = '/tmp/multitran_bot_activity.png'
 		fig.savefig(savefilename)
 		plt.close(fig)
+
+		return savefilename
 
 if __name__ == '__main__':
 	ActivityLogger().visualizeTicks()

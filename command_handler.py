@@ -73,6 +73,8 @@ class UserCommandHandler(object):
 		self.dispatcher.add_handler(CommandHandler('links', self.command_toggle_links))
 		self.dispatcher.add_handler(CommandHandler('transcriptions', self.command_toggle_transcriptions))
 		self.dispatcher.add_handler(CommandHandler('bottom_row', self.command_toggle_bottom_row))
+		self.dispatcher.add_handler(CommandHandler('estadisticas', self.command_send_activity_graph))
+
 
 		# non-command message
 		self.dispatcher.add_handler(MessageHandler([Filters.text], self.messageMethod))
@@ -82,6 +84,11 @@ class UserCommandHandler(object):
 
 
 		self.dispatcher.add_error_handler(self.error_handler)
+
+	def sendFile(self, bot, update, filename, caption=None):
+		chat_id = update.message.chat_id
+		with open(filename, "rb") as f:
+			bot.sendDocument(chat_id, document=f, caption=caption)
 
 	def sendPic(self, bot, update, pic_filename, caption=""):
 		chat_id = update.message.chat_id
@@ -180,6 +187,13 @@ class UserCommandHandler(object):
 	def command_help(self, bot, update):
 		msg = HELP_MESSAGE
 		self.sendMessage(bot, update, msg)
+
+	# noinspection PyArgumentList
+	@_command_method
+	def command_send_activity_graph(self, bot, update):
+		filename = self.activity_logger.visualizeTicks()
+		self.sendFile(bot, update, filename, caption="Bot statistics")
+		removeFile(filename)
 	
 	# noinspection PyArgumentList
 	@_command_method
