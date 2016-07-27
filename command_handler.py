@@ -190,6 +190,7 @@ class UserCommandHandler(object):
 
 	# noinspection PyArgumentList
 	@_command_method
+	@command_async
 	def command_send_activity_graph(self, bot, update):
 		filename = self.activity_logger.visualizeTicks()
 		self.sendFile(bot, update, filename, caption="Bot statistics")
