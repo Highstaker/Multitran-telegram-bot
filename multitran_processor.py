@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from PIL import Image
 from random import getrandbits
 
+
 class MultitranError(Exception):
 	pass
 
@@ -16,6 +17,7 @@ def escape_markdown(text):
 	escape_chars = '\*_`\['
 	return re.sub(r'([%s])' % escape_chars, r'\\\1', text)
 
+
 def getTranslationsTable(soup):
 	"""Returns the translations table from Multitran page, as an element in the list"""
 	table = [i for i in soup.find_all('table') if
@@ -24,12 +26,14 @@ def getTranslationsTable(soup):
 			 and not len(i.find_all('table'))]
 	return table
 
+
 def getReplacementVariants(soup):
 	varia = soup.find_all('td', string=re.compile("Варианты"))
 	variants_list = []
 	if varia:
 		variants_list = [i for i in varia[0].find_next_sibling("td").text.split(";")]
 	return variants_list
+
 
 def processTable(table, links_on=False):
 	result = ""
@@ -38,26 +42,30 @@ def processTable(table, links_on=False):
 	word_index = 0
 
 	def translations_row(word_index):
-		result = "`" + tr.find_all('a')[0].text + "`" + " " * 5
-		words_list = []
+		_result = "`" + tr.find_all('a')[0].text + "`" + " " * 5
+		_words_list = []
 		for a in tr.find_all('a')[1:]:
 			if not 'i' in [i.name for i in a.children]:
-				i_word = escape_markdown(a.text)
+				i_word = escape_markdown(a.text).strip(" \n\t\r")
+				# print(3, i_word)
+				if i_word == "в начало":
+					break
 				a_word = i_word + "; "
-				words_list += [i_word.strip(" \n\t\r")]
+				_words_list += [i_word]
 				# add a word, checking if a user wants links
-				result += a_word if not links_on else ("/" + str(word_index) + " " + a_word + "\n")
-				# result += (a_word) if not self.subscribers[chat_id][3] else (
-				# "/" + str(word_index) + " " + a_word + "\n")
+				_result += a_word if not links_on else ("/" + str(word_index) + " " + a_word + "\n")
 				word_index += 1
-		return result, word_index, words_list
+		return _result, word_index, _words_list
 
 	for tr in table.find_all('tr'):
 		# for each row, corresponds to topic
 		tds = tr.find_all('td')
+		# print("tr",tr)#debug
+		# print(0, tds)#debug
 
 		if tds[0].has_attr('bgcolor') and tds[0]['bgcolor'] == "#DBDBDB":
 			# a header of the table, with initial word and its properties
+			# print(1, tr.text)#debug
 			result += "\n" + "*" + escape_markdown(tr.text.split("|")[0].replace(
 				tr.find_all('em')[0].text if tr.find_all('em') else "", "").replace("в начало", "").replace("фразы",
 																											"").replace(
@@ -65,6 +73,7 @@ def processTable(table, links_on=False):
 					  (" " * 5 + "_" + escape_markdown(tr.find_all('em')[0].text) + "_") if tr.find_all('em') else "")
 			transcription_images_links += [[i["src"] for i in tr.find_all('img')]]
 		else:
+			# print(2, tr.text)  # debug
 			r, word_index, word_list_fraction = translations_row(word_index)
 			words_list += word_list_fraction
 			result += r
@@ -72,7 +81,18 @@ def processTable(table, links_on=False):
 
 	return result, transcription_images_links, words_list
 
+
 def dictQuery(request, lang, links_on=False):
+	"""
+
+	:param request: a word to search
+	:param lang: index of a foreign language
+	:param links_on: should the links be present in the reply or not?
+	:return: a tuple. First element is always a signal.
+	0 - Normal.
+	1 - Could not connect to Multitran.
+	2 - Word not found.
+	"""
 	soup = None
 	page_url = ""
 	for russian in range(2):
@@ -210,3 +230,7 @@ def createTranscription(transcription_images_links):
 			whole_transcription_image.save(transc_filename)
 
 			return transc_filename
+
+if __name__ == '__main__':
+	# tests
+	print(dictQuery("Verkehr", 3))
