@@ -346,7 +346,7 @@ class UserCommandHandler(object):
 				self.userparams.setEntry(chat_id, "variants", db_variants)
 				if self.userparams.getEntry(chat_id, "transcriptions_on"):
 					if transcription_filename:
-						self.sendPic(bot, update, transcription_filename)
+						self.sendPic(bot, update, transcription_filename, caption=msg)
 						removeFile(transcription_filename)
 
 

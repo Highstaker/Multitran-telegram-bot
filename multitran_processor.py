@@ -168,20 +168,26 @@ def createTranscription(transcription_images_links):
 		'''gets a letter picture from multitran'''
 		# print("letter_page",letter_page)
 
-		image_file = None
+		im = None
 		while True:
 			try:
 				req = requests.get("http://www.multitran.ru" + letter_page)
 				if req.ok:
 					c = req.content
 					image_file = io.BytesIO(c)
-					with open(path.join(TRANSCRIPTION_LETTER_CACHE_PATH, path.basename(letter_page)), 'wb') as f:
-						f.write(c)
+					# Resize the image. They're originally just several pixels in size, that's frustrating.
+					RESIZED_HEIGHT = 600
+					im = Image.open(image_file)
+					im_size = im.size
+					im = im.resize((int(RESIZED_HEIGHT * im_size[0]/im_size[1]), RESIZED_HEIGHT), Image.NEAREST)
+					im.save(path.join(TRANSCRIPTION_LETTER_CACHE_PATH, path.basename(letter_page)))
+					# with open(path.join(TRANSCRIPTION_LETTER_CACHE_PATH, path.basename(letter_page)), 'wb') as f:
+					# 	f.write(c)
 					break
 			except Exception as e:
 				# logging.error("Could not get transcription letter image. Error: " + str(e))
 				pass
-		return image_file
+		return im
 
 	transcription_images_links = [i for i in removeListDuplicates(transcription_images_links) if
 								  i]  # remove duplicate lists of files, thus removing duplicate images. Also, remove emties if they appear
@@ -194,22 +200,14 @@ def createTranscription(transcription_images_links):
 				try:
 					makedirs(TRANSCRIPTION_LETTER_CACHE_PATH,
 							 exist_ok=True)  # make a directory. Ignore if it already exists
-					with open(path.join(TRANSCRIPTION_LETTER_CACHE_PATH, path.basename(letter_page)), 'rb') as f:
-						image_file = io.BytesIO(f.read())
+					image_file = Image.open(path.join(TRANSCRIPTION_LETTER_CACHE_PATH, path.basename(letter_page)))
 				except FileNotFoundError:
 					# if failed, download it
 					image_file = getLetterOnline(letter_page)
-
-				try:
-					# in case the cache is damaged
-					if image_file:
-						image = Image.open(image_file)
-					else:
+					if not image_file:
 						return ""
-				except:
-					image = Image.open(getLetterOnline(letter_page))
 
-				letter_images += [image]
+				letter_images += [image_file]
 
 			# creating a whole image
 			image_sizes = [i.size for i in letter_images]
