@@ -12,6 +12,7 @@ from userparams import UserParams
 from button_handler import getMainMenu
 from multitran_processor import dictQuery
 from activity_logger import ActivityLogger
+from VERSION import VERSION_NUMBER
 
 def is_integer(s):
 	"""
