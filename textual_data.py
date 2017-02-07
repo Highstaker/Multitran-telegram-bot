@@ -1,5 +1,6 @@
 from os import path
 import sys
+from collections import OrderedDict
 
 if getattr(sys, 'frozen', False):
 	# frozen
@@ -20,19 +21,19 @@ with open(path.join(SCRIPT_FOLDER, BOT_TOKEN_FILENAME), 'r') as f:
 	BOT_TOKEN = f.read().replace("\n", "")
 
 # Indicies that correspond to various languages on Multitran
-LANGUAGE_INDICIES = {
-"🇬🇧 English" :1
-, "🇩🇪 Deutsch":3
-, "🇫🇷 Français":4
-, "🇪🇸 Español":5
-, "🇮🇹 Italiano":23
-, "🇪🇴 Esperanto":34
-, "🇳🇱 Nederlands":24
-, "🇱🇻 Latvian":27
-, "🇪🇪 Estonian":26
-, "🇿🇦 Afrikaans":31
-, "🇽🇦🇱 Kalmyk":35
-}
+LANGUAGE_INDICIES = OrderedDict(zip(
+["🇬🇧 English"
+, "🇩🇪 Deutsch"
+, "🇫🇷 Français"
+, "🇪🇸 Español"
+, "🇮🇹 Italiano"
+, "🇪🇴 Esperanto"
+, "🇳🇱 Nederlands"
+, "🇱🇻 Latvian"
+, "🇪🇪 Estonian"
+, "🇿🇦 Afrikaans"
+, "Kalmyk"],
+[1, 3, 4, 5, 23, 34, 24, 27, 26, 31, 35]))
 
 #################
 #### BUTTONS#####
