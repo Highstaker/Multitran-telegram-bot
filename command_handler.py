@@ -13,6 +13,7 @@ from button_handler import getMainMenu
 from multitran_processor import dictQuery
 from activity_logger import ActivityLogger
 from VERSION import VERSION_NUMBER
+import telegram.error
 
 def is_integer(s):
 	"""
@@ -145,13 +146,19 @@ class UserCommandHandler(object):
 			key_markdown = MMKM = lS(getMainMenu(hide_keys=self.userparams.getEntry(chat_id, "buttons_hidden"),
 												hide_bottom_row=self.userparams.getEntry(chat_id, "bottom_lang_row_hidden")
 												))
-
-		for m in breakLongMessage(msg):
-			bot.sendMessage(chat_id=chat_id, text=m,
-						reply_markup=ReplyKeyboardMarkup(key_markdown, resize_keyboard=True),
-						parse_mode=ParseMode.MARKDOWN,
-						disable_web_page_preview=disable_web_page_preview,
-						)
+		message_chunks = breakLongMessage(msg)
+		for m in message_chunks:
+			try:
+				bot.sendMessage(chat_id=chat_id, text=m,
+							reply_markup=ReplyKeyboardMarkup(key_markdown, resize_keyboard=True),
+							parse_mode=ParseMode.MARKDOWN,
+							disable_web_page_preview=disable_web_page_preview,
+							)
+			except telegram.error.BadRequest:
+				bot.sendMessage(chat_id=chat_id, text=m,
+								reply_markup=ReplyKeyboardMarkup(key_markdown, resize_keyboard=True),
+								disable_web_page_preview=disable_web_page_preview,
+								)
 
 	##########
 	# COMMAND METHODS
