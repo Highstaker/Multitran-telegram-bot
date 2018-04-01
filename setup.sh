@@ -7,7 +7,7 @@ touch tokens/token
 
 mkdir env
 #create environment
-virtualenv env/picbot_env
+virtualenv env/picbot_env -p /usr/bin/python3
 # install dependencies
 env/picbot_env/bin/python3 env/picbot_env/bin/pip3 install -r requirements.txt
 
