@@ -31,9 +31,14 @@ LANGUAGE_INDICIES = OrderedDict(zip(
 , "🇳🇱 Nederlands"
 , "🇱🇻 Latvian"
 , "🇪🇪 Estonian"
-, "🇿🇦 Afrikaans"
-, "Kalmyk"],
-[1, 3, 4, 5, 23, 34, 24, 27, 26, 31, 35]))
+# , "🇿🇦 Afrikaans"
+# , "Kalmyk"
+],
+[1, 3, 4, 5, 23, 34, 24, 27, 26, 
+# 31, 
+# 35,
+
+]))
 
 #################
 #### BUTTONS#####
@@ -118,7 +123,7 @@ Available languages are: {1}'''.format(PICK_LANGUAGE_BUTTON["EN"], ", ".join(lis
 }
 
 ABOUT_MESSAGE = {"EN": """*Multitran Bot*
-_Created by:_ Highstaker a.k.a. OmniSable.
+_Created by:_ Highstaker
 Get in touch with me on Telegram if you have questions, suggestions or bug reports (@Highstaker).
 Source code can be found [here](https://github.com/Highstaker/Multitran-telegram-bot).
 Version: {0}
@@ -126,10 +131,10 @@ Version: {0}
 
 This bot uses the [python-telegram-bot](https://github.com/leandrotoledo/python-telegram-bot) library.
 
-Translation data is received from [Multitran online dictionary](multitran.ru).
+Translation data is received from [Multitran online dictionary](multitran.com).
 """,
 "RU": """*Multitran Bot*
-_Автор:_ Highstaker a.k.a. OmniSable.
+_Автор:_ Highstaker
 По вопросам и предложениям обращайтесь в Телеграм (@Highstaker).
 Исходный код [здесь](https://github.com/Highstaker/Multitran-telegram-bot).
 Версия: {0}
@@ -137,7 +142,7 @@ _Автор:_ Highstaker a.k.a. OmniSable.
 
 Этот бот написан на основе библиотеки [python-telegram-bot](https://github.com/leandrotoledo/python-telegram-bot).
 
-Переводы берутся из [словаря Мультитран](multitran.ru).
+Переводы берутся из [словаря Мультитран](multitran.com).
 """
 }
 

@@ -20,10 +20,20 @@ def escape_markdown(text):
 
 def getTranslationsTable(soup):
 	"""Returns the translations table from Multitran page, as an element in the list"""
-	table = [i for i in soup.find_all('table') if
-			 not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr(
-				 'cellpadding') and i.has_attr('cellspacing') and i.has_attr('border')
-			 and not len(i.find_all('table'))]
+	# print(soup)#debug
+	# div1 = soup.find_all('div', class_='middle_mobile')
+	# print("div1", div1)
+	tables = soup.find_all('table')
+	# print("tables",tables)#debug
+	table = [i for i in tables if i.has_attr('width')
+and not i.has_attr('class') and not i.has_attr('id')
+	][:]
+	# print(table)#debug
+
+	# table = [i for i in soup.find_all('table') if
+	# 		 not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr(
+	# 			 'cellpadding') and i.has_attr('cellspacing') and i.has_attr('border')
+	# 		 and not len(i.find_all('table'))]
 	return table
 
 
@@ -61,9 +71,11 @@ def processTable(table, links_on=False):
 		# for each row, corresponds to topic
 		tds = tr.find_all('td')
 		# print("tr",tr)#debug
-		# print(0, tds)#debug
+		# print("tds", tds)#debug
+		# print(tds[0].has_attr('class'), tds[0]['class'] == ['gray'])#debug
 
-		if tds[0].has_attr('bgcolor') and tds[0]['bgcolor'] == "#DBDBDB":
+		if tds[0].has_attr('class') and tds[0]['class'] == ['gray']:
+			# print("found header", tr)#debug
 			# a header of the table, with initial word and its properties
 			# print(1, tr.text)#debug
 			result += "\n" + "*" + escape_markdown(tr.text.split("|")[0].replace(
@@ -71,7 +83,7 @@ def processTable(table, links_on=False):
 																											"").replace(
 				"\n", "")) + "*" + (  #cursive
 					  (" " * 5 + "_" + escape_markdown(tr.find_all('em')[0].text) + "_") if tr.find_all('em') else "")
-			transcription_images_links += [[i["src"] for i in tr.find_all('img')]]
+			# transcription_images_links += [[i["src"] for i in tr.find_all('img')]] #transcriptions are now textual on Multitran
 		else:
 			# print(2, tr.text)  # debug
 			r, word_index, word_list_fraction = translations_row(word_index)
@@ -105,6 +117,7 @@ def dictQuery(request, lang, links_on=False):
 		soup = BeautifulSoup(page, "lxml")
 
 		translations_table = getTranslationsTable(soup)
+		# print("translations_table",translations_table)#debug
 		if translations_table:
 			# word is found continue to processing
 
@@ -128,15 +141,15 @@ def getMultitranPage(word, lang, from_russian=False, attempts=3):
 	"""Processes the Multitran page. Returns the status code and content."""
 
 	# escape the word in URL.
-	try:
-		word_escaped = requests.utils.quote(word.encode("cp1251"))
-	except UnicodeEncodeError:
-		word_escaped = requests.utils.quote(word.encode('utf-8', 'replace'))
+	# try:
+	# 	word_escaped = requests.utils.quote(word.encode("cp1251"))
+	# except UnicodeEncodeError:
+	word_escaped = requests.utils.quote(word.encode('utf-8', 'replace'))
 
 	if from_russian:
-		page_url = 'http://www.multitran.ru/c/m.exe?l1=2&l2={0}&s={1}'.format(lang, word_escaped)
+		page_url = 'https://www.multitran.com/m.exe?l1=2&l2={0}&s={1}'.format(lang, word_escaped)
 	else:
-		page_url = 'http://www.multitran.ru/c/m.exe?l1={0}&s={1}'.format(lang, word_escaped)
+		page_url = 'https://www.multitran.com/m.exe?l1={0}&l2=2&s={1}'.format(lang, word_escaped)
 
 	MULTITRAN_ERROR_TEXT = 'Multitran is down!'
 
@@ -150,7 +163,7 @@ def getMultitranPage(word, lang, from_russian=False, attempts=3):
 	else:
 		raise MultitranError(MULTITRAN_ERROR_TEXT)
 
-	return req.status_code, req.content.decode("cp1251", "replace"), page_url
+	return req.status_code, req.content.decode("utf-8", "replace"), page_url
 
 
 def createTranscription(transcription_images_links):
@@ -171,7 +184,7 @@ def createTranscription(transcription_images_links):
 		im = None
 		while True:
 			try:
-				req = requests.get("http://www.multitran.ru" + letter_page)
+				req = requests.get("http://www.multitran.com" + letter_page)
 				if req.ok:
 					c = req.content
 					image_file = io.BytesIO(c)

@@ -389,8 +389,8 @@ class UserCommandHandler(object):
 			self.command_rateme(bot, update)
 		elif message in LanguageSupport.allVariants(TOGGLE_TRANSLATIONS_LINKS_BUTTON):
 			self.command_toggle_links(bot, update)
-		elif message in LanguageSupport.allVariants(TOGGLE_TRANSCRIPTIONS_BUTTON):
-			self.command_toggle_transcriptions(bot, update)
+		# elif message in LanguageSupport.allVariants(TOGGLE_TRANSCRIPTIONS_BUTTON):
+		# 	self.command_toggle_transcriptions(bot, update)
 		elif message == EN_LANG_BUTTON:
 			self.command_set_lang_en(bot, update)
 		elif message == RU_LANG_BUTTON:
