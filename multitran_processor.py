@@ -86,9 +86,12 @@ def processTable(table, links_on=False):
 			# transcription_images_links += [[i["src"] for i in tr.find_all('img')]] #transcriptions are now textual on Multitran
 		else:
 			# print(2, tr.text)  # debug
-			r, word_index, word_list_fraction = translations_row(word_index)
-			words_list += word_list_fraction
-			result += r
+			try:
+				r, word_index, word_list_fraction = translations_row(word_index)
+				words_list += word_list_fraction
+				result += r
+			except IndexError:
+				pass
 		result += "\n"
 
 	return result, transcription_images_links, words_list
