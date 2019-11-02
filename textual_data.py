@@ -32,12 +32,11 @@ LANGUAGE_INDICIES = OrderedDict(zip(
 , "🇱🇻 Latvian"
 , "🇪🇪 Estonian"
 # , "🇿🇦 Afrikaans"
-# , "Kalmyk"
+, "Kalmyk"
 ],
 [1, 3, 4, 5, 23, 34, 24, 27, 26, 
 # 31, 
-# 35,
-
+35,
 ]))
 
 #################

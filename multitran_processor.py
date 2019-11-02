@@ -28,13 +28,20 @@ def getTranslationsTable(soup):
 	table = [i for i in tables if i.has_attr('width')
 and not i.has_attr('class') and not i.has_attr('id')
 	][:]
-	# print(table)#debug
+
+	result = []
+	for t in table:
+		# print(str(t))
+		if "перевод с других языков" not in str(t):
+			result.append(t)
+
+	# print(table, result,sep='\n',end='\n==============\n')#debug	
 
 	# table = [i for i in soup.find_all('table') if
 	# 		 not i.has_attr('class') and not i.has_attr('id') and not i.has_attr('width') and i.has_attr(
 	# 			 'cellpadding') and i.has_attr('cellspacing') and i.has_attr('border')
 	# 		 and not len(i.find_all('table'))]
-	return table
+	return result
 
 
 def getReplacementVariants(soup):
@@ -70,9 +77,12 @@ def processTable(table, links_on=False):
 	for tr in table.find_all('tr'):
 		# for each row, corresponds to topic
 		tds = tr.find_all('td')
+		# print("table",table)#debug
 		# print("tr",tr)#debug
 		# print("tds", tds)#debug
 		# print(tds[0].has_attr('class'), tds[0]['class'] == ['gray'])#debug
+		if len(tds) <= 0:
+			continue
 
 		if tds[0].has_attr('class') and tds[0]['class'] == ['gray']:
 			# print("found header", tr)#debug
@@ -126,7 +136,7 @@ def dictQuery(request, lang, links_on=False):
 
 			# have to extract translations_table[0] from list
 			result, transcription_images_links, words_list = processTable(translations_table[0], links_on)
-			# print(result, transcription_images_links, words_list)#debug
+			# print(result, transcription_images_links, words_list, russian)#debug
 
 			transcription_filename = createTranscription(transcription_images_links)
 
