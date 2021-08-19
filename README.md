@@ -1,9 +1,9 @@
 # Multitran-telegram-bot
 A translator bot that uses Multitran online dictionary.
 
-##Overview
+## Overview
 
-##Deployment
+## Deployment
 
 Make sure **Python 3** and **virtualenv** are installed.
 
@@ -15,7 +15,7 @@ Then, run _setup.sh_. This will install dependencies.
 
 To run the bot, simply run _run.sh_.
 
-###Deploying with webhooks and `nginx`
+### Deploying with webhooks and `nginx`
 
 Install *nginx* using `apt-get install nginx`
 Go to `/etc/nginx/sites-enabled` and create new file with the following contents.
@@ -43,12 +43,12 @@ Modify your _run.sh_ so it would be something like this, replacing the values wi
 `env/picbot_env/bin/python3 multitran_bot.py --server-ip="111.111.111.111" -m "webhook_nginx" -p 33333 -c "/somepath/certs/cert.pem"`
 
 
-##Dependencies
+## Dependencies
 
 This program uses **Python 3**
 
 This program relies on [python-telegram-bot](https://github.com/leandrotoledo/python-telegram-bot).
 
-##Tested systems
+## Tested systems
 
 Ubuntu 14.04
