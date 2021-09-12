@@ -87,12 +87,21 @@ def processTable(table, links_on=False):
 		if tds[0].has_attr('class') and tds[0]['class'] == ['gray']:
 			# print("found header", tr)#debug
 			# a header of the table, with initial word and its properties
-			# print(1, tr.text)#debug
-			result += "\n" + "*" + escape_markdown(tr.text.split("|")[0].replace(
-				tr.find_all('em')[0].text if tr.find_all('em') else "", "").replace("в начало", "").replace("фразы",
-																											"").replace(
-				"\n", "")) + "*" + (  #cursive
+			# print(1, tr.text, tr)#debug
+
+			# eliminating markdown symbols that are already present in source text
+			text = "\n" + "*" + escape_markdown(tr.text.split("|")[0])
+			#removing the gender at the end, if present
+			if tr.find_all('em'):
+				#this magic replaces only the last occurence of the letter
+				text = ''.join(text.rsplit(tr.find_all('em')[0].text,1))
+			text = text.replace("в начало", "").replace("фразы", "").replace(
+				"\n", "") + "*" + (  #cursive
 					  (" " * 5 + "_" + escape_markdown(tr.find_all('em')[0].text) + "_") if tr.find_all('em') else "")
+
+			result += text
+
+			# print("result", result)#debug
 			# transcription_images_links += [[i["src"] for i in tr.find_all('img')]] #transcriptions are now textual on Multitran
 		else:
 			# print(2, tr.text)  # debug

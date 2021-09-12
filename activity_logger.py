@@ -24,6 +24,9 @@ class ActivityLogger(object):
 			f.write(msg)
 
 	def visualizeTicks(self):
+		#this crap is deprecated, it is a terrible way to visualize activity.
+		return
+
 		# read the data from file
 		with open(self.logfile, "r") as f:
 			data = f.read()
