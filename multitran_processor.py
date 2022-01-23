@@ -144,7 +144,7 @@ def dictQuery(request, lang, links_on=False):
 			# word is found continue to processing
 
 			# have to extract translations_table[0] from list
-			result, transcription_images_links, words_list = processTable(translations_table[0], links_on)
+			result, transcription_images_links, words_list = processTable(translations_table[1], links_on)
 			# print(result, transcription_images_links, words_list, russian)#debug
 
 			transcription_filename = createTranscription(transcription_images_links)
@@ -178,7 +178,8 @@ def getMultitranPage(word, lang, from_russian=False, attempts=3):
 	for i in range(attempts):
 		try:
 			req = requests.get(page_url)
-		except:
+		except Exception as e:
+			print("could not connect to Multitran: " + str(e))
 			raise MultitranError(MULTITRAN_ERROR_TEXT)
 		if req.status_code == 200:
 			break
