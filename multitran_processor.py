@@ -144,7 +144,7 @@ def dictQuery(request, lang, links_on=False):
 			# word is found continue to processing
 
 			# have to extract translations_table[0] from list
-			result, transcription_images_links, words_list = processTable(translations_table[1], links_on)
+			result, transcription_images_links, words_list = processTable(translations_table[0], links_on)
 			# print(result, transcription_images_links, words_list, russian)#debug
 
 			transcription_filename = createTranscription(transcription_images_links)
