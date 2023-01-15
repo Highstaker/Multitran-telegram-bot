@@ -1,7 +1,13 @@
 # Multitran-telegram-bot
 A translator bot that uses Multitran online dictionary.
 
-# TODO: instruction update
+## Deployment
+
+Run `setup.sh`. Docker image will be built.
+
+Run `docker_run_multitran_bot.sh` to run the actual bot.
+
+# TODO: Old readme below, perform cleanup
 
 ## Overview
 
@@ -54,3 +60,4 @@ This program relies on [python-telegram-bot](https://github.com/leandrotoledo/py
 ## Tested systems
 
 Ubuntu 14.04
+Ubuntu 20.04
