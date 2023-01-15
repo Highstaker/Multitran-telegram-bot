@@ -2,7 +2,6 @@ FROM python:3.4
 
 CMD ["mkdir","/multitran_bot"]
 RUN ["apt-get", "update"]
-RUN ["apt-get", "install", "-y", "virtualenv"]
 RUN ["apt-get", "install", "-y", "python3-dev"]
 
 COPY ["requirements.txt","/"]
