@@ -3,9 +3,13 @@ A translator bot that uses Multitran online dictionary.
 
 ## Deployment
 
-Run `setup.sh`. Docker image will be built.
+Create `tokens` folder and put token there in a file called `token`.
+
+Run `setup_docker.sh`. Docker image will be built.
 
 Run `docker_run_multitran_bot.sh` to run the actual bot.
+
+If you prefer Podman, use the respective scripts instead.
 
 # TODO: Old readme below, perform cleanup
 
