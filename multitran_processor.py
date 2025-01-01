@@ -133,6 +133,7 @@ def dictQuery(request, lang, links_on=False):
 		# try a foreign language in first iteration, and if not found, try Russian in second one.
 		try:
 			status_code, page, page_url = getMultitranPage(request, lang, from_russian=bool(russian))
+			print("Status:",status_code, ", requested word:", request, ", language:", lang)
 		except MultitranError:
 			return 1
 
@@ -143,8 +144,11 @@ def dictQuery(request, lang, links_on=False):
 		if translations_table:
 			# word is found continue to processing
 
-			# have to extract translations_table[0] from list
-			result, transcription_images_links, words_list = processTable(translations_table[0], links_on)
+			#print("translations_table",translations_table)#debug 
+
+			# I have to extract the correct table from list. 
+			# Not sure which one to pick, so I just improvise with index.
+			result, transcription_images_links, words_list = processTable(translations_table[1], links_on)
 			# print(result, transcription_images_links, words_list, russian)#debug
 
 			transcription_filename = createTranscription(transcription_images_links)
